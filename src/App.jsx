@@ -7,7 +7,7 @@ import OzonCalculator from './components/OzonCalculator.jsx';
 import PackagingCalculator from './components/PackagingCalculator.jsx';
 import AdminPanel from './components/AdminPanel.jsx';
 import Auth from './pages/Auth.jsx';
-import Exchange from './pages/Exchange.jsx';
+import ExchangeNew from './pages/ExchangeNew.jsx';
 import AdminImages from './pages/AdminImages.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
 
@@ -113,7 +113,7 @@ function App() {
               path="/exchange" 
               element={
                 <AuthGuard>
-                  <Exchange />
+                  <ExchangeNew />
                 </AuthGuard>
               } 
             />

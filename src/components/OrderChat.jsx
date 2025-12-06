@@ -337,22 +337,22 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
 
   if (!relevantPackerId && isSearchingStatus) {
     return (
-      <div className="bg-slate-50 rounded-lg p-6 text-center">
-        <svg className="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="bg-secondary rounded-lg p-6 text-center">
+        <svg className="mx-auto h-12 w-12 text-muted-foreground mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
-        <p className="text-slate-600">Выберите заявку, чтобы начать общение с упаковщиком</p>
+        <p className="text-muted-foreground">Выберите заявку, чтобы начать общение с упаковщиком</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-auto bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+    <div className="flex flex-col h-auto bg-card rounded-lg border border-border shadow-sm overflow-hidden">
       {/* Chat Header */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4">
+      <div className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-base font-semibold text-slate-900">
+            <h3 className="text-base font-semibold text-foreground">
               {isClient ? (
                 <>Чат с {loadingPacker ? '...' : (packerInfo?.full_name || 'упаковщиком')}</>
               ) : isPacker ? (
@@ -361,10 +361,10 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
                 <>Чат заказа (Вид менеджера)</>
               )}
             </h3>
-            <p className="text-sm text-slate-500 mt-1 flex items-center">
+            <p className="text-sm text-muted-foreground mt-1 flex items-center">
               <span>Заказ: {order.title}</span>
               {order.is_disputed && (
-                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-destructive/20 text-destructive border border-destructive/30">
                   <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
@@ -378,7 +378,7 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
           {isClient && isSearchingStatus && relevantPackerId && onHirePacker && (
             <button
               onClick={() => onHirePacker(relevantPackerId)}
-              className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition shadow-sm text-sm"
+              className="px-4 py-2 bg-primary text-primary-foreground font-medium rounded-md hover:bg-primary/90 transition shadow-sm text-sm"
             >
               Нанять упаковщика
             </button>
@@ -389,8 +389,8 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
         {isManager && (
           <div className={`mt-4 px-4 py-2 rounded-md border ${
             order.is_disputed 
-              ? 'bg-amber-50 border-amber-200 text-amber-800'
-              : 'bg-blue-50 border-blue-200 text-blue-800'
+              ? 'bg-orange-500/10 border-orange-500/30 text-orange-400'
+              : 'bg-primary/10 border-primary/30 text-primary'
           }`}>
             <div className="flex items-center gap-2 text-sm font-medium">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -408,8 +408,8 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
         )}
 
         {/* Logistics Cost Section (Visible to all, editable by Manager/Admin) */}
-        <div className="mt-4 p-4 bg-slate-50 rounded-md border border-slate-200">
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+        <div className="mt-4 p-4 bg-secondary rounded-md border border-border">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Стоимость логистики фулфилмент короба
           </label>
           <div className="flex gap-2">
@@ -420,8 +420,8 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
               disabled={!isManager && !isAdmin}
               className={`flex-1 px-3 py-2 text-sm border rounded-md transition ${
                 isManager || isAdmin
-                  ? 'bg-white border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
-                  : 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed'
+                  ? 'bg-background border-input focus:ring-2 focus:ring-ring focus:border-ring text-foreground'
+                  : 'bg-muted border-border text-muted-foreground cursor-not-allowed'
               }`}
               placeholder="Введите стоимость"
             />
@@ -429,7 +429,7 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
               <button
                 onClick={handleLogisticsCostUpdate}
                 disabled={savingLogistics}
-                className={`px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition shadow-sm ${
+                className={`px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary/90 transition shadow-sm ${
                   savingLogistics ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
@@ -438,7 +438,7 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
             )}
           </div>
           {!isManager && !isAdmin && (
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Только менеджер или администратор может изменить это значение
             </p>
           )}
@@ -446,22 +446,22 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
       </div>
 
       {/* Messages Container */}
-      <div className="h-[400px] overflow-y-auto p-6 space-y-4 bg-slate-50">
+      <div className="h-[400px] overflow-y-auto p-6 space-y-4 bg-secondary">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-600"></div>
-              <p className="mt-2 text-slate-600">Загрузка сообщений...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+              <p className="mt-2 text-muted-foreground">Загрузка сообщений...</p>
             </div>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <svg className="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="mx-auto h-12 w-12 text-muted-foreground mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
-              <p className="text-slate-600">Сообщений пока нет</p>
-              <p className="text-sm text-slate-500 mt-1">Начните разговор!</p>
+              <p className="text-foreground">Сообщений пока нет</p>
+              <p className="text-sm text-muted-foreground mt-1">Начните разговор!</p>
             </div>
           </div>
         ) : (
@@ -473,7 +473,7 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
               if (isSystemMessage) {
                 return (
                   <div key={message.id} className="flex justify-center">
-                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-2 rounded-md text-sm font-medium shadow-sm">
+                    <div className="bg-accent/20 border border-accent/30 text-accent px-4 py-2 rounded-md text-sm font-medium shadow-sm">
                       {message.content}
                     </div>
                   </div>
@@ -489,8 +489,8 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
                     <div
                       className={`rounded-lg px-4 py-3 shadow-sm ${
                         isMyMessage
-                          ? 'bg-indigo-600 text-white rounded-br-none'
-                          : 'bg-white text-slate-900 rounded-bl-none border border-slate-200'
+                          ? 'bg-primary text-primary-foreground rounded-br-none'
+                          : 'bg-card text-foreground rounded-bl-none border border-border'
                       }`}
                     >
                       {!isMyMessage && (
@@ -501,7 +501,7 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
                         </p>
                       )}
                       <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                      <p className={`text-xs mt-1 ${isMyMessage ? 'text-indigo-200' : 'text-slate-500'}`}>
+                      <p className={`text-xs mt-1 ${isMyMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
                         {formatMessageTime(message.created_at)}
                       </p>
                     </div>
@@ -515,13 +515,13 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-slate-200 bg-white px-6 py-4">
+      <div className="border-t border-border bg-card px-6 py-4">
         {/* Arbitration Button */}
         {shouldShowArbitrationButton() && !order.is_disputed && !isManager && (
           <div className="mb-4">
             <button
               onClick={handleCallArbitration}
-              className="w-full px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition shadow-sm flex items-center justify-center gap-2 text-sm"
+              className="w-full px-4 py-2 bg-destructive text-destructive-foreground font-medium rounded-md hover:bg-destructive/90 transition shadow-sm flex items-center justify-center gap-2 text-sm"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -540,18 +540,18 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Введите сообщение..."
               disabled={sending}
-              className="flex-1 px-4 py-2 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-slate-900"
+              className="flex-1 px-4 py-2 bg-background border border-input rounded-md focus:ring-2 focus:ring-ring focus:border-ring transition text-foreground"
             />
             <button
               type="submit"
               disabled={sending || !newMessage.trim()}
-              className={`px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition shadow-sm flex items-center gap-2 text-sm ${
+              className={`px-4 py-2 bg-primary text-primary-foreground font-medium rounded-md hover:bg-primary/90 transition shadow-sm flex items-center gap-2 text-sm ${
                 sending || !newMessage.trim() ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
               {sending ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary-foreground"></div>
                   Отправка...
                 </>
               ) : (
@@ -565,8 +565,8 @@ function OrderChat({ order, currentUser, currentUserProfile, selectedPackerId = 
             </button>
           </form>
         ) : (
-          <div className="text-center py-2 text-sm text-slate-500 bg-slate-50 rounded-md border border-slate-200">
-            <svg className="w-5 h-5 mx-auto mb-1 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+          <div className="text-center py-2 text-sm text-muted-foreground bg-secondary rounded-md border border-border">
+            <svg className="w-5 h-5 mx-auto mb-1 text-muted-foreground" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
             </svg>
             Отправка сообщений отключена (режим наблюдателя)
