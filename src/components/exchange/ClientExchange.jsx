@@ -194,6 +194,7 @@ function ClientExchange({ user, profile }) {
             packagings={packagings}
             onSelect={handleSelectPackaging}
             onCreate={handleCreate}
+            selectedId={selectedPackaging?.id}
           />
         )}
         {currentView === 'create' && (

@@ -486,8 +486,8 @@ function ManagerExchange({ user, profile }) {
               </div>
             </div>
             <div className="overflow-auto">
-              {currentView === 'all-orders' && <AllOrders orders={allOrders} onSelect={handleSelectOrder} />}
-              {currentView === 'completed' && <CompletedOrders orders={completedOrders} onSelect={handleSelectOrder} />}
+              {currentView === 'all-orders' && <AllOrders orders={allOrders} onSelect={handleSelectOrder} selectedId={selectedOrder?.id} />}
+              {currentView === 'completed' && <CompletedOrders orders={completedOrders} onSelect={handleSelectOrder} selectedId={selectedOrder?.id} />}
               {currentView === 'arbitration' && <ArbitrationList orders={arbitrationOrders} onSelect={handleSelectOrder} />}
               {currentView === 'estimation' && (
                 <PriceEstimation estimations={estimationOrders} onSelect={handleSelectOrder} user={user} onCreate={fetchAllData} />

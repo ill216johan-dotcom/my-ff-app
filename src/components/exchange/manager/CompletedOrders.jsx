@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { Search, Package, CheckCircle, Users, Calendar } from 'lucide-react';
 import Input from '../ui/Input.jsx';
 import Badge from '../ui/Badge.jsx';
-import { Card, CardContent } from '../ui/Card.jsx';
 
-export default function CompletedOrders({ orders, onSelect }) {
+export default function CompletedOrders({ orders, onSelect, selectedId }) {
   const [search, setSearch] = useState('');
 
   const filteredOrders = orders.filter((order) => {
@@ -17,77 +16,95 @@ export default function CompletedOrders({ orders, onSelect }) {
   });
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Завершённые упаковки</h1>
-        <p className="text-muted-foreground">Архив выполненных заказов</p>
-      </div>
-
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Поиск по номеру, клиенту или исполнителю..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
+    <div className="flex h-full">
+      <div className="flex-1 p-6 overflow-auto border-r border-border">
+        <div className="mb-6">
+          <h1 className="text-xl font-semibold text-foreground">Завершённые упаковки</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Архив выполненных заказов</p>
         </div>
-      </div>
 
-      <div className="space-y-4">
-        {filteredOrders.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <CheckCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Упаковки не найдены</p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredOrders.map((order) => (
-            <Card
+        <div className="mb-5">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Поиск по номеру, клиенту или исполнителю..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-9 text-sm"
+            />
+          </div>
+        </div>
+
+      {filteredOrders.length === 0 ? (
+        <div className="border border-dashed border-border rounded-xl p-8 text-center">
+          <CheckCircle className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+          <p className="text-muted-foreground text-sm">Упаковки не найдены</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+          {filteredOrders.map((order) => (
+            <button
               key={order.id}
-              className="cursor-pointer hover:border-orange-500/50 transition-colors"
               onClick={() => onSelect(order)}
+              className={`w-full text-left bg-card border border-border rounded-lg p-4 hover:border-orange-500/50 transition-all group ${
+                selectedId === order.id ? 'border-orange-500 ring-1 ring-orange-500/20' : ''
+              }`}
             >
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-foreground truncate">{order.title}</h3>
-                      <Badge variant="outline" className="bg-green-500/10 text-green-500">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Завершено
-                      </Badge>
-                    </div>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <h3 className="font-medium text-foreground text-sm group-hover:text-orange-500 transition-colors line-clamp-1">
+                  {order.title}
+                </h3>
+              </div>
 
-                    <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {order.clientName}
-                      </span>
-                      <span className="text-foreground">→ {order.executorName}</span>
-                      <span className="flex items-center gap-1">
-                        <Package className="w-4 h-4" />
-                        {order.articlesCount} артикулов
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {new Date(order.createdAt).toLocaleDateString('ru-RU')}
-                      </span>
-                    </div>
-                  </div>
+              <div className="flex items-center gap-2 mb-3">
+                <Badge variant="outline" className="bg-green-500/10 text-green-500 text-xs">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Завершено
+                </Badge>
+              </div>
 
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Итого</p>
-                    <p className="font-semibold text-foreground">{order.price}</p>
-                  </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
+                <span className="flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  {order.clientName}
+                </span>
+                {order.executorName && (
+                  <>
+                    <span>→</span>
+                    <span className="text-foreground">{order.executorName}</span>
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Package className="w-3 h-3" />
+                    {order.articlesCount}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {new Date(order.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+                <span className="font-semibold text-foreground">{order.price}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
       </div>
+
+      {!selectedId && (
+        <div className="w-80 p-6 bg-secondary/30">
+          <h2 className="text-sm font-medium text-foreground mb-4">Архив</h2>
+          <div className="p-4 rounded-lg bg-card border border-border">
+            <p className="text-sm text-foreground">
+              Выберите заказ слева для просмотра деталей завершённой упаковки.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

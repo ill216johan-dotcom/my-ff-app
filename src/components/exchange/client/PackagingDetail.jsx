@@ -432,66 +432,77 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
         </Tabs>
       </div>
 
-      {selectedResponse && (
-        <div className="w-full lg:w-96 border-t lg:border-l lg:border-t-0 border-border bg-card flex flex-col">
-          <div className="p-3 lg:p-4 border-b border-border">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 lg:gap-3 min-w-0 flex-1">
-                <Avatar className="h-8 w-8 lg:h-10 lg:w-10 flex-shrink-0">
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs lg:text-sm">
-                    {selectedResponse.executorName.slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-medium text-sm lg:text-base text-foreground truncate">{selectedResponse.executorName}</h3>
-                  <div className="flex items-center gap-1 text-xs lg:text-sm text-muted-foreground">
-                    <Star className="w-3 h-3 lg:w-3.5 lg:h-3.5 fill-yellow-500 text-yellow-500" />
-                    {selectedResponse.executorRating}
+      <div className="w-full lg:w-96 border-t lg:border-l lg:border-t-0 border-border bg-card flex flex-col">
+        {selectedResponse ? (
+          <>
+            <div className="p-3 lg:p-4 border-b border-border">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 lg:gap-3 min-w-0 flex-1">
+                  <Avatar className="h-8 w-8 lg:h-10 lg:w-10 flex-shrink-0">
+                    <AvatarFallback className="bg-primary/20 text-primary text-xs lg:text-sm">
+                      {selectedResponse.executorName.slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-medium text-sm lg:text-base text-foreground truncate">{selectedResponse.executorName}</h3>
+                    <div className="flex items-center gap-1 text-xs lg:text-sm text-muted-foreground">
+                      <Star className="w-3 h-3 lg:w-3.5 lg:h-3.5 fill-yellow-500 text-yellow-500" />
+                      {selectedResponse.executorRating}
+                    </div>
                   </div>
                 </div>
+                <button
+                  onClick={() => setSelectedResponse(null)}
+                  className="text-muted-foreground hover:text-foreground flex-shrink-0 ml-2"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setSelectedResponse(null)}
-                className="text-muted-foreground hover:text-foreground flex-shrink-0 ml-2"
-              >
-                <X className="w-5 h-5" />
-              </button>
+
+              <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm">
+                <div>
+                  <span className="text-muted-foreground">Цена: </span>
+                  <span className="font-medium text-foreground">{selectedResponse.price}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Срок: </span>
+                  <span className="font-medium text-foreground">
+                    {new Date(selectedResponse.deadline).toLocaleDateString('ru-RU')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-3 lg:mt-4">
+                <Button className="flex-1 gap-2 text-sm lg:text-base" onClick={() => handleAcceptBid(selectedResponse)}>
+                  <Check className="w-4 h-4" />
+                  Принять
+                </Button>
+                <Button variant="outline" className="flex-1 bg-transparent text-sm lg:text-base">
+                  Отклонить
+                </Button>
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm">
-              <div>
-                <span className="text-muted-foreground">Цена: </span>
-                <span className="font-medium text-foreground">{selectedResponse.price}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Срок: </span>
-                <span className="font-medium text-foreground">
-                  {new Date(selectedResponse.deadline).toLocaleDateString('ru-RU')}
-                </span>
-              </div>
+            <div className="flex-1 p-3 lg:p-4 overflow-auto">
+              <OrderChat
+                order={packaging.order}
+                currentUser={user}
+                currentUserProfile={profile}
+                selectedPackerId={selectedResponse.packerId}
+              />
             </div>
-
-            <div className="flex gap-2 mt-3 lg:mt-4">
-              <Button className="flex-1 gap-2 text-sm lg:text-base" onClick={() => handleAcceptBid(selectedResponse)}>
-                <Check className="w-4 h-4" />
-                Принять
-              </Button>
-              <Button variant="outline" className="flex-1 bg-transparent text-sm lg:text-base">
-                Отклонить
-              </Button>
-            </div>
-          </div>
-
+          </>
+        ) : (
           <div className="flex-1 p-3 lg:p-4 overflow-auto">
             <OrderChat
               order={packaging.order}
               currentUser={user}
               currentUserProfile={profile}
-              selectedPackerId={selectedResponse.packerId}
+              selectedPackerId={null}
             />
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {showArbitrationModal && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -571,9 +582,9 @@ function ResponseCard({ response, isSelected, onSelect, onAccept }) {
             <p className="font-medium text-sm lg:text-base text-foreground">{new Date(response.deadline).toLocaleDateString('ru-RU')}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs lg:text-sm text-primary">
+        <div className="flex items-center gap-2 text-xs lg:text-sm text-muted-foreground">
           <MessageSquare className="w-3 h-3 lg:w-4 lg:h-4" />
-          Открыть чат
+          Нажмите для просмотра
         </div>
       </div>
     </button>

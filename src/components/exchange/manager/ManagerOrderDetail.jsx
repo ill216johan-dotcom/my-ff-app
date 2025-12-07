@@ -40,9 +40,23 @@ export default function ManagerOrderDetail({ order, onBack, user, profile, onUpd
   }, [order]);
 
   useEffect(() => {
-    fetchMessages();
-    // Check if manager is already connected (has sent messages)
-    checkManagerConnection();
+    const initialize = async () => {
+      await fetchMessages();
+      const wasConnected = await checkManagerConnection();
+      
+      // Auto-connect manager if not connected and can connect
+      if (!wasConnected && user && order.id) {
+        const canConnect = order.status !== 'completed' && order.status !== 'active';
+        if (canConnect) {
+          // Small delay to ensure state is updated
+          setTimeout(() => {
+            handleConnect();
+          }, 200);
+        }
+      }
+    };
+    
+    initialize();
   }, [order.id, user]);
 
   const fetchMessages = async () => {
@@ -94,9 +108,12 @@ export default function ManagerOrderDetail({ order, onBack, user, profile, onUpd
 
       if (data && data.length > 0) {
         setIsConnected(true);
+        return true;
       }
+      return false;
     } catch (error) {
       console.error('Error checking connection:', error);
+      return false;
     }
   };
 
@@ -204,12 +221,6 @@ export default function ManagerOrderDetail({ order, onBack, user, profile, onUpd
             <p className="text-sm text-muted-foreground mt-1">Заказ #{String(order.id || '').slice(0, 8)}</p>
           </div>
 
-          {canConnect && !isConnected && (
-            <Button onClick={handleConnect} className="bg-orange-500 hover:bg-orange-600 text-white dark:text-white">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Подключиться к чату
-            </Button>
-          )}
           {isConnected && (
             <Badge className="bg-orange-500 text-white dark:text-white">
               <Shield className="w-3 h-3 mr-1" />

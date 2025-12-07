@@ -311,12 +311,14 @@ function ExecutorExchange({ user, profile }) {
             orders={availableOrders} 
             onSelect={handleSelectOrder}
             user={user}
+            selectedId={selectedOrder?.id}
           />
         )}
         {currentView === 'my-orders' && (
           <MyOrders 
             orders={myOrders} 
             onSelect={handleSelectMyOrder}
+            selectedId={selectedMyOrder?.id}
           />
         )}
         {currentView === 'order-detail' && selectedOrder && (

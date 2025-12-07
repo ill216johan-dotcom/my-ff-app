@@ -1,45 +1,55 @@
-import React, { useState } from 'react';
-import { Search, Filter, Package, Clock, AlertTriangle, Users, TrendingUp, DollarSign } from 'lucide-react';
-import Input from '../ui/Input.jsx';
-import Badge from '../ui/Badge.jsx';
-import { Card, CardContent } from '../ui/Card.jsx';
-import Button from '../ui/Button.jsx';
+"use client"
+
+import { useState } from "react"
+import { Search, Filter, Package, Clock, AlertTriangle, Users, TrendingUp, DollarSign } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
+import type { ManagerOrder } from "@/app/manager/page"
+
+interface AllOrdersProps {
+  orders: ManagerOrder[]
+  selectedId?: string
+  onSelect: (order: ManagerOrder) => void
+}
 
 const statusLabels = {
-  active: 'Поиск исполнителя',
-  in_progress: 'В работе',
-  awaiting_payment: 'Ожидает оплаты',
-  completed: 'Завершено',
-};
+  active: "Поиск исполнителя",
+  in_progress: "В работе",
+  awaiting_payment: "Ожидает оплаты",
+  completed: "Завершено",
+}
 
 const statusColors = {
-  active: 'bg-blue-500/10 text-blue-500',
-  in_progress: 'bg-yellow-500/10 text-yellow-500',
-  awaiting_payment: 'bg-purple-500/10 text-purple-500',
-  completed: 'bg-green-500/10 text-green-500',
-};
+  active: "bg-blue-500/10 text-blue-500",
+  in_progress: "bg-yellow-500/10 text-yellow-500",
+  awaiting_payment: "bg-purple-500/10 text-purple-500",
+  completed: "bg-green-500/10 text-green-500",
+}
 
-export default function AllOrders({ orders, onSelect, selectedId }) {
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+export function AllOrders({ orders, selectedId, onSelect }: AllOrdersProps) {
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.title.toLowerCase().includes(search.toLowerCase()) ||
       order.id.toLowerCase().includes(search.toLowerCase()) ||
-      order.clientName.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+      order.clientName.toLowerCase().includes(search.toLowerCase())
+    const matchesStatus = statusFilter === "all" || order.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
 
   const stats = {
     total: orders.length,
-    active: orders.filter((o) => o.status === 'active').length,
-    inProgress: orders.filter((o) => o.status === 'in_progress').length,
-    awaitingPayment: orders.filter((o) => o.status === 'awaiting_payment').length,
+    active: orders.filter((o) => o.status === "active").length,
+    inProgress: orders.filter((o) => o.status === "in_progress").length,
+    awaitingPayment: orders.filter((o) => o.status === "awaiting_payment").length,
     withArbitration: orders.filter((o) => o.hasArbitration).length,
-    unreadMessages: orders.reduce((acc, o) => acc + (o.unreadMessages || 0), 0),
-  };
+    unreadMessages: orders.reduce((acc, o) => acc + o.unreadMessages, 0),
+  }
 
   return (
     <div className="flex h-full">
@@ -59,86 +69,89 @@ export default function AllOrders({ orders, onSelect, selectedId }) {
               className="pl-9 h-9 text-sm"
             />
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-border bg-secondary text-foreground text-sm h-9"
-          >
-            <option value="all">Все статусы</option>
-            <option value="active">Поиск исполнителя</option>
-            <option value="in_progress">В работе</option>
-            <option value="awaiting_payment">Ожидает оплаты</option>
-          </select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px] h-9 text-sm">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Все статусы" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все статусы</SelectItem>
+              <SelectItem value="active">Поиск исполнителя</SelectItem>
+              <SelectItem value="in_progress">В работе</SelectItem>
+              <SelectItem value="awaiting_payment">Ожидает оплаты</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-      {filteredOrders.length === 0 ? (
-        <div className="border border-dashed border-border rounded-xl p-8 text-center">
-          <Package className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-muted-foreground text-sm">Упаковки не найдены</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-          {filteredOrders.map((order) => (
-            <button
-              key={order.id}
-              onClick={() => onSelect(order)}
-              className={`w-full text-left bg-card border border-border rounded-lg p-4 hover:border-orange-500/50 transition-all group ${
-                selectedId === order.id ? 'border-orange-500 ring-1 ring-orange-500/20' : ''
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <h3 className="font-medium text-foreground text-sm group-hover:text-orange-500 transition-colors line-clamp-1">
-                  {order.title}
-                </h3>
-                {order.unreadMessages > 0 && (
-                  <span className="flex-shrink-0 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
-                    {order.unreadMessages}
-                  </span>
+        {filteredOrders.length === 0 ? (
+          <div className="border border-dashed border-border rounded-xl p-8 text-center">
+            <Package className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+            <p className="text-muted-foreground text-sm">Упаковки не найдены</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+            {filteredOrders.map((order) => (
+              <button
+                key={order.id}
+                onClick={() => onSelect(order)}
+                className={cn(
+                  "w-full text-left bg-card border border-border rounded-lg p-4 hover:border-orange-500/50 transition-all group",
+                  selectedId === order.id && "border-orange-500 ring-1 ring-orange-500/20",
                 )}
-              </div>
-
-              <div className="flex items-center gap-2 mb-3 flex-wrap">
-                <Badge variant="outline" className={`text-xs ${statusColors[order.status]}`}>
-                  {statusLabels[order.status]}
-                </Badge>
-                {order.hasArbitration && (
-                  <Badge variant="outline" className="bg-orange-500/10 text-orange-500 border-orange-500/20 text-xs">
-                    <AlertTriangle className="w-3 h-3 mr-1" />
-                    Арбитраж
-                  </Badge>
-                )}
-              </div>
-
-              <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
-                <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  {order.clientName}
-                </span>
-                {order.executorName && (
-                  <>
-                    <span>→</span>
-                    <span className="text-foreground">{order.executorName}</span>
-                  </>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Package className="w-3 h-3" />
-                    {order.articlesCount}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {new Date(order.deadline).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
-                  </span>
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className="font-medium text-foreground text-sm group-hover:text-orange-500 transition-colors line-clamp-1">
+                    {order.title}
+                  </h3>
+                  {order.unreadMessages > 0 && (
+                    <span className="flex-shrink-0 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+                      {order.unreadMessages}
+                    </span>
+                  )}
                 </div>
-                <span className="font-semibold text-foreground">{order.price || order.budget}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
+
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <Badge variant="outline" className={cn("text-xs", statusColors[order.status])}>
+                    {statusLabels[order.status]}
+                  </Badge>
+                  {order.hasArbitration && (
+                    <Badge variant="outline" className="bg-orange-500/10 text-orange-500 border-orange-500/20 text-xs">
+                      <AlertTriangle className="w-3 h-3 mr-1" />
+                      Арбитраж
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
+                  <span className="flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    {order.clientName}
+                  </span>
+                  {order.executorName && (
+                    <>
+                      <span>→</span>
+                      <span className="text-foreground">{order.executorName}</span>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-3 text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Package className="w-3 h-3" />
+                      {order.articlesCount}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {new Date(order.deadline).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}
+                    </span>
+                  </div>
+                  <span className="font-semibold text-foreground">{order.price || order.budget}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {!selectedId && (
@@ -218,7 +231,7 @@ export default function AllOrders({ orders, onSelect, selectedId }) {
                   <span className="text-sm text-muted-foreground">Непрочитанных сообщений</span>
                   <Badge
                     variant="secondary"
-                    className={stats.unreadMessages > 0 ? 'bg-destructive/20 text-destructive' : ''}
+                    className={stats.unreadMessages > 0 ? "bg-destructive/20 text-destructive" : ""}
                   >
                     {stats.unreadMessages}
                   </Badge>
@@ -234,6 +247,5 @@ export default function AllOrders({ orders, onSelect, selectedId }) {
         </div>
       )}
     </div>
-  );
+  )
 }
-

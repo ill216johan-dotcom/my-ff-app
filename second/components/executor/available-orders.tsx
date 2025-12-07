@@ -1,55 +1,48 @@
-import React, { useState } from 'react';
-import { Search, Filter, Clock, Package, Users, Star, TrendingUp, Briefcase, DollarSign } from 'lucide-react';
-import Input from '../ui/Input.jsx';
-import Button from '../ui/Button.jsx';
-import Badge from '../ui/Badge.jsx';
-import { Avatar, AvatarFallback } from '../ui/Avatar.jsx';
-import { Card, CardContent } from '../ui/Card.jsx';
-import { cn } from '../../../lib/utils.js';
+"use client"
 
-export default function AvailableOrders({ orders, onSelect, user, selectedId }) {
-  const [searchQuery, setSearchQuery] = useState('');
+import { Search, Filter, Clock, Package, Users, Star, TrendingUp, Briefcase, DollarSign } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { cn } from "@/lib/utils"
+import type { AvailableOrder } from "@/app/executor/page"
 
-  const getTimeAgo = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+interface AvailableOrdersProps {
+  orders: AvailableOrder[]
+  selectedId?: string
+  onSelect: (order: AvailableOrder) => void
+}
 
-    if (diffHours < 1) return 'только что';
-    if (diffHours < 24) return `${diffHours}ч назад`;
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}д назад`;
-  };
+export function AvailableOrders({ orders, selectedId, onSelect }: AvailableOrdersProps) {
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
 
-  const getDaysUntilDeadline = (deadline) => {
-    if (!deadline) return null;
-    const deadlineDate = new Date(deadline);
-    const now = new Date();
-    const diffDays = Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
+    if (diffHours < 1) return "только что"
+    if (diffHours < 24) return `${diffHours}ч назад`
+    const diffDays = Math.floor(diffHours / 24)
+    return `${diffDays}д назад`
+  }
 
-  const filteredOrders = orders.filter((order) => {
-    const clientName = order.clientName || '';
-    return (
-      order.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.id.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
+  const getDaysUntilDeadline = (deadline: string) => {
+    const deadlineDate = new Date(deadline)
+    const now = new Date()
+    const diffDays = Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    return diffDays
+  }
 
   const stats = {
     totalOrders: orders.length,
     avgBudget:
       orders.length > 0
-        ? Math.round(orders.reduce((acc, o) => acc + Number.parseInt((o.budget || '0').replace(/\D/g, '')), 0) / orders.length)
+        ? Math.round(orders.reduce((acc, o) => acc + Number.parseInt(o.budget.replace(/\D/g, "")), 0) / orders.length)
         : 0,
-    urgentOrders: orders.filter((o) => {
-      const days = getDaysUntilDeadline(o.deadline);
-      return days !== null && days <= 7;
-    }).length,
-    popularOrders: orders.filter((o) => (o.responsesCount || 0) > 3).length,
-  };
+    urgentOrders: orders.filter((o) => getDaysUntilDeadline(o.deadline) <= 7).length,
+    popularOrders: orders.filter((o) => o.responsesCount > 3).length,
+  }
 
   return (
     <div className="flex h-full">
@@ -60,13 +53,11 @@ export default function AvailableOrders({ orders, onSelect, user, selectedId }) 
         </div>
 
         <div className="flex items-center gap-2 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Поиск по названию или клиенту..."
               className="pl-9 h-9 bg-secondary border-border text-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <Button variant="outline" size="icon" className="h-9 w-9 border-border bg-transparent">
@@ -92,26 +83,17 @@ export default function AvailableOrders({ orders, onSelect, user, selectedId }) 
           </Badge>
         </div>
 
-      {filteredOrders.length === 0 ? (
-        <div className="border border-dashed border-border rounded-xl p-8 text-center">
-          <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mx-auto mb-3">
-            <Search className="w-6 h-6 text-muted-foreground" />
-          </div>
-          <h3 className="font-medium text-foreground mb-1 text-sm">Нет доступных заказов</h3>
-          <p className="text-muted-foreground text-xs">Новые заказы появляются регулярно</p>
-        </div>
-      ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-          {filteredOrders.map((order) => {
-            const daysLeft = getDaysUntilDeadline(order.deadline);
+          {orders.map((order) => {
+            const daysLeft = getDaysUntilDeadline(order.deadline)
 
             return (
               <button
                 key={order.id}
                 onClick={() => onSelect(order)}
                 className={cn(
-                  'w-full text-left bg-card border border-border rounded-lg p-4 hover:border-accent/50 transition-all group',
-                  selectedId === order.id && 'border-accent ring-1 ring-accent/20'
+                  "w-full text-left bg-card border border-border rounded-lg p-4 hover:border-accent/50 transition-all group",
+                  selectedId === order.id && "border-accent ring-1 ring-accent/20",
                 )}
               >
                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -126,13 +108,13 @@ export default function AvailableOrders({ orders, onSelect, user, selectedId }) 
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
                   <Avatar className="h-4 w-4">
                     <AvatarFallback className="bg-primary/20 text-primary text-[8px]">
-                      {order.clientName?.slice(0, 2) || 'КЛ'}
+                      {order.clientName.slice(0, 2)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="line-clamp-1">{order.clientName || 'Клиент'}</span>
+                  <span className="line-clamp-1">{order.clientName}</span>
                   <span className="flex items-center gap-0.5 flex-shrink-0">
                     <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                    {order.clientRating || 'N/A'}
+                    {order.clientRating}
                   </span>
                   <span className="text-muted-foreground/50">•</span>
                   <span className="flex-shrink-0">{getTimeAgo(order.createdAt)}</span>
@@ -144,26 +126,33 @@ export default function AvailableOrders({ orders, onSelect, user, selectedId }) 
                   <div className="flex items-center gap-3 text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Package className="w-3 h-3" />
-                      {order.articlesCount || 0}
+                      {order.articlesCount}
                     </span>
-                    {daysLeft !== null && (
-                      <span className={cn('flex items-center gap-1', daysLeft <= 5 ? 'text-orange-400' : '')}>
-                        <Clock className="w-3 h-3" />
-                        {daysLeft}д
-                      </span>
-                    )}
+                    <span className={`flex items-center gap-1 ${daysLeft <= 5 ? "text-orange-400" : ""}`}>
+                      <Clock className="w-3 h-3" />
+                      {daysLeft}д
+                    </span>
                     <span className="flex items-center gap-1">
                       <Users className="w-3 h-3" />
-                      {order.responsesCount || 0}
+                      {order.responsesCount}
                     </span>
                   </div>
-                  <span className="font-semibold text-foreground">{order.budget || 'Не указан'}</span>
+                  <span className="font-semibold text-foreground">{order.budget}</span>
                 </div>
               </button>
-            );
+            )
           })}
         </div>
-      )}
+
+        {orders.length === 0 && (
+          <div className="border border-dashed border-border rounded-xl p-8 text-center">
+            <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mx-auto mb-3">
+              <Search className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <h3 className="font-medium text-foreground mb-1 text-sm">Нет доступных заказов</h3>
+            <p className="text-muted-foreground text-xs">Новые заказы появляются регулярно</p>
+          </div>
+        )}
       </div>
 
       {!selectedId && (
@@ -241,6 +230,5 @@ export default function AvailableOrders({ orders, onSelect, user, selectedId }) 
         </div>
       )}
     </div>
-  );
+  )
 }
-
