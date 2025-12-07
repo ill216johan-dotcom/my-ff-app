@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Menu } from 'lucide-react';
 import { supabase } from '../../supabaseClient.js';
 import { getNotificationSummary } from '../../utils/notifications.js';
 import ExecutorSidebar from './executor/ExecutorSidebar.jsx';
@@ -7,6 +8,7 @@ import MyOrders from './executor/MyOrders.jsx';
 import OrderDetail from './executor/OrderDetail.jsx';
 import ActiveOrderDetail from './executor/ActiveOrderDetail.jsx';
 import ThemeToggle from '../ThemeToggle.jsx';
+import Button from './ui/Button.jsx';
 
 /**
  * Executor (Packer) Exchange Dashboard
@@ -20,6 +22,7 @@ function ExecutorExchange({ user, profile }) {
   const [myOrders, setMyOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState({ newOrders: 0, messages: 0, myOrders: 0 });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -39,18 +42,26 @@ function ExecutorExchange({ user, profile }) {
     
     setLoading(true);
     try {
-      // Fetch orders that are searching for a packer
+      // Optimized query: exclude heavy items column, only fetch lightweight fields needed for list view
       const { data, error } = await supabase
         .from('orders')
         .select(`
-          *,
+          id,
+          title,
+          status,
+          budget,
+          deadline,
+          created_at,
+          description,
+          is_estimation,
           profiles:client_id (
             full_name,
             id
           )
         `)
         .in('status', ['searching', 'open'])
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(0, 49);
 
       if (error) {
         console.error('Error fetching available orders:', error);
@@ -74,10 +85,10 @@ function ExecutorExchange({ user, profile }) {
           budget: order.budget ? `${order.budget.toLocaleString('ru-RU')} ₽` : 'Не указан',
           deadline: order.deadline,
           createdAt: order.created_at,
-          articlesCount: order.items ? (Array.isArray(order.items) ? order.items.length : 0) : 0,
+          articlesCount: 0, // Excluded items column for performance - will be loaded in detail view
           description: order.description || '',
           responsesCount: 0, // Will be fetched separately
-          articles: order.items || [],
+          articles: [], // Excluded items for performance
           order: order,
           hasBid: bidOrderIds.has(order.id),
           isEstimation: order.is_estimation || false
@@ -127,11 +138,19 @@ function ExecutorExchange({ user, profile }) {
     if (!user) return;
     
     try {
-      // Fetch orders where this packer is the accepted packer
+      // Optimized query: exclude heavy items column, only fetch lightweight fields needed for list view
       const { data, error } = await supabase
         .from('orders')
         .select(`
-          *,
+          id,
+          title,
+          status,
+          budget,
+          deadline,
+          created_at,
+          updated_at,
+          description,
+          is_estimation,
           profiles:client_id (
             full_name,
             id
@@ -139,7 +158,8 @@ function ExecutorExchange({ user, profile }) {
         `)
         .eq('accepted_packer_id', user.id)
         .in('status', ['booked', 'in_progress', 'awaiting_payment', 'completed'])
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(0, 49);
 
       if (error) {
         console.error('Error fetching my orders:', error);
@@ -169,8 +189,8 @@ function ExecutorExchange({ user, profile }) {
             deadline: order.deadline,
             startedAt: order.created_at,
             completedAt: order.status === 'completed' ? order.updated_at : null,
-            articlesCount: order.items ? (Array.isArray(order.items) ? order.items.length : 0) : 0,
-            articles: order.items || [],
+            articlesCount: 0, // Excluded items column for performance - will be loaded in detail view
+            articles: [], // Excluded items for performance
             order: order,
             invoiceSentAt: order.status === 'awaiting_payment' ? order.updated_at : null
           };
@@ -267,11 +287,24 @@ function ExecutorExchange({ user, profile }) {
           setSelectedMyOrder(null);
         }}
         notifications={notifications}
+        profile={profile}
+        isMobileOpen={isMobileMenuOpen}
+        onMobileClose={() => setIsMobileMenuOpen(false)}
       />
 
       <main className="flex-1 overflow-auto relative">
-        <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
+        <div className="sticky top-0 z-30 lg:static flex items-center justify-between p-4 lg:p-0 lg:absolute lg:top-4 lg:right-4 bg-background lg:bg-transparent border-b lg:border-0 border-border">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+          <div className="lg:block">
+            <ThemeToggle />
+          </div>
         </div>
         {currentView === 'available' && (
           <AvailableOrders 

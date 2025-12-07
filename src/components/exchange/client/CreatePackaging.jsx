@@ -149,7 +149,7 @@ export default function CreatePackaging({ onBack, onCreated, user }) {
   };
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-4 lg:p-8 max-w-4xl">
       <button
         onClick={onBack}
         className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -158,18 +158,18 @@ export default function CreatePackaging({ onBack, onCreated, user }) {
         Назад к списку
       </button>
 
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-foreground">Создание задания</h1>
-        <p className="text-muted-foreground mt-1">Заполните информацию о задании на упаковку</p>
+      <div className="mb-6 lg:mb-8">
+        <h1 className="text-xl lg:text-2xl font-semibold text-foreground">Создание задания</h1>
+        <p className="text-sm lg:text-base text-muted-foreground mt-1">Заполните информацию о задании на упаковку</p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 lg:space-y-6">
         <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-lg">Основная информация</CardTitle>
-            <CardDescription>Название и описание задания</CardDescription>
+          <CardHeader className="p-4 lg:p-6">
+            <CardTitle className="text-base lg:text-lg">Основная информация</CardTitle>
+            <CardDescription className="text-xs lg:text-sm">Название и описание задания</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 lg:p-6">
             <div>
               <Label htmlFor="title">Название задания</Label>
               <Input
@@ -194,9 +194,9 @@ export default function CreatePackaging({ onBack, onCreated, user }) {
         </Card>
 
         <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-lg">Артикулы для упаковки</CardTitle>
-            <CardDescription>Добавьте товары вручную или загрузите Excel файл</CardDescription>
+          <CardHeader className="p-4 lg:p-6">
+            <CardTitle className="text-base lg:text-lg">Артикулы для упаковки</CardTitle>
+            <CardDescription className="text-xs lg:text-sm">Добавьте товары вручную или загрузите Excel файл</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={inputMethod} onValueChange={setInputMethod}>
@@ -311,7 +311,7 @@ export default function CreatePackaging({ onBack, onCreated, user }) {
             <CardDescription>Укажите желаемые сроки и бюджет</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
               <div>
                 <Label htmlFor="deadline" className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Menu } from 'lucide-react';
 import { supabase } from '../../supabaseClient.js';
 import { getNotificationSummary } from '../../utils/notifications.js';
 import ManagerSidebar from './manager/ManagerSidebar.jsx';
@@ -8,6 +9,7 @@ import ArbitrationList from './manager/ArbitrationList.jsx';
 import PriceEstimation from './manager/PriceEstimation.jsx';
 import ManagerOrderDetail from './manager/ManagerOrderDetail.jsx';
 import ThemeToggle from '../ThemeToggle.jsx';
+import Button from './ui/Button.jsx';
 
 /**
  * Manager Exchange Dashboard
@@ -23,6 +25,7 @@ function ManagerExchange({ user, profile }) {
   const [loading, setLoading] = useState(true);
   const [arbitrationCount, setArbitrationCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -49,32 +52,70 @@ function ManagerExchange({ user, profile }) {
 
   const fetchAllOrders = async () => {
     try {
-      const { data, error } = await supabase
+      // First, get all orders with the required statuses
+      const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
-        .select(`
-          *,
-          client:profiles!orders_client_id_fkey (
-            full_name,
-            id
-          ),
-          executor:profiles!orders_accepted_packer_id_fkey (
-            full_name,
-            id
-          )
-        `)
+        .select('*')
         .in('status', ['searching', 'open', 'booked', 'in_progress', 'awaiting_payment'])
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching all orders:', error);
-      } else {
-        const transformed = (data || []).map((order) => ({
+      if (ordersError) {
+        console.error('Error fetching all orders:', ordersError);
+        setAllOrders([]);
+        return;
+      }
+
+      if (!ordersData || ordersData.length === 0) {
+        console.log('No orders found with statuses:', ['searching', 'open', 'booked', 'in_progress', 'awaiting_payment']);
+        setAllOrders([]);
+        return;
+      }
+
+      // Get unique client and executor IDs
+      const clientIds = [...new Set(ordersData.map(o => o.client_id).filter(Boolean))];
+      const executorIds = [...new Set(ordersData.map(o => o.accepted_packer_id).filter(Boolean))];
+
+      // Fetch profiles for clients and executors
+      const profilesMap = {};
+      
+      if (clientIds.length > 0) {
+        const { data: clientProfiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', clientIds);
+        
+        if (clientProfiles) {
+          clientProfiles.forEach(profile => {
+            profilesMap[profile.id] = profile;
+          });
+        }
+      }
+
+      if (executorIds.length > 0) {
+        const { data: executorProfiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', executorIds);
+        
+        if (executorProfiles) {
+          executorProfiles.forEach(profile => {
+            profilesMap[profile.id] = profile;
+          });
+        }
+      }
+
+      // Transform orders
+      const transformed = ordersData.map((order) => {
+        const clientProfile = order.client_id ? profilesMap[order.client_id] : null;
+        const executorProfile = order.accepted_packer_id ? profilesMap[order.accepted_packer_id] : null;
+
+        return {
           id: order.id,
           title: order.title,
-          clientName: order.client?.full_name || 'Клиент',
-          clientId: order.client?.id || '',
-          executorName: order.executor?.full_name,
-          executorId: order.executor?.id,
+          clientName: clientProfile?.full_name || 'Клиент',
+          clientId: order.client_id || '',
+          executorName: executorProfile?.full_name,
+          executorId: order.accepted_packer_id,
           status: mapOrderStatus(order.status),
           budget: order.budget ? `${order.budget.toLocaleString('ru-RU')} ₽` : 'Не указан',
           price: null, // Will be fetched from accepted bid
@@ -87,10 +128,12 @@ function ManagerExchange({ user, profile }) {
           arbitrationRequestedAt: null,
           isEstimation: order.is_estimation || false,
           order: order,
-        }));
+        };
+      });
 
-        // Fetch prices from accepted bids
-        const orderIds = transformed.map((o) => o.id);
+      // Fetch prices from accepted bids
+      const orderIds = transformed.map((o) => o.id);
+      if (orderIds.length > 0) {
         const { data: bids } = await supabase
           .from('bids')
           .select('order_id, price')
@@ -107,57 +150,97 @@ function ManagerExchange({ user, profile }) {
           price: bidMap[order.id] ? `${bidMap[order.id].toLocaleString('ru-RU')} ₽` : null,
         }));
 
+        console.log('Fetched orders for manager:', ordersWithPrices.length);
         setAllOrders(ordersWithPrices);
+      } else {
+        setAllOrders(transformed);
       }
     } catch (error) {
       console.error('Error in fetchAllOrders:', error);
+      setAllOrders([]);
     }
   };
 
   const fetchCompletedOrders = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
-        .select(`
-          *,
-          client:profiles!orders_client_id_fkey (
-            full_name,
-            id
-          ),
-          executor:profiles!orders_accepted_packer_id_fkey (
-            full_name,
-            id
-          )
-        `)
+        .select('*')
         .eq('status', 'completed')
         .order('updated_at', { ascending: false })
         .limit(100);
 
-      if (error) {
-        console.error('Error fetching completed orders:', error);
-      } else {
-        const transformed = (data || []).map((order) => {
-          return {
-            id: order.id,
-            title: order.title,
-            clientName: order.client?.full_name || 'Клиент',
-            clientId: order.client?.id || '',
-            executorName: order.executor?.full_name || 'Исполнитель',
-            executorId: order.executor?.id || '',
-            status: 'completed',
-            budget: order.budget ? `${order.budget.toLocaleString('ru-RU')} ₽` : 'Не указан',
-            price: null,
-            deadline: order.deadline,
-            createdAt: order.created_at,
-            articlesCount: order.items ? (Array.isArray(order.items) ? order.items.length : 0) : 0,
-            unreadMessages: 0,
-            hasArbitration: false,
-            order: order,
-          };
-        });
+      if (ordersError) {
+        console.error('Error fetching completed orders:', ordersError);
+        setCompletedOrders([]);
+        return;
+      }
 
-        // Fetch prices
-        const orderIds = transformed.map((o) => o.id);
+      if (!ordersData || ordersData.length === 0) {
+        setCompletedOrders([]);
+        return;
+      }
+
+      // Get unique client and executor IDs
+      const clientIds = [...new Set(ordersData.map(o => o.client_id).filter(Boolean))];
+      const executorIds = [...new Set(ordersData.map(o => o.accepted_packer_id).filter(Boolean))];
+
+      // Fetch profiles
+      const profilesMap = {};
+      
+      if (clientIds.length > 0) {
+        const { data: clientProfiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', clientIds);
+        
+        if (clientProfiles) {
+          clientProfiles.forEach(profile => {
+            profilesMap[profile.id] = profile;
+          });
+        }
+      }
+
+      if (executorIds.length > 0) {
+        const { data: executorProfiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', executorIds);
+        
+        if (executorProfiles) {
+          executorProfiles.forEach(profile => {
+            profilesMap[profile.id] = profile;
+          });
+        }
+      }
+
+      // Transform orders
+      const transformed = ordersData.map((order) => {
+        const clientProfile = order.client_id ? profilesMap[order.client_id] : null;
+        const executorProfile = order.accepted_packer_id ? profilesMap[order.accepted_packer_id] : null;
+
+        return {
+          id: order.id,
+          title: order.title,
+          clientName: clientProfile?.full_name || 'Клиент',
+          clientId: order.client_id || '',
+          executorName: executorProfile?.full_name || 'Исполнитель',
+          executorId: order.accepted_packer_id || '',
+          status: 'completed',
+          budget: order.budget ? `${order.budget.toLocaleString('ru-RU')} ₽` : 'Не указан',
+          price: null,
+          deadline: order.deadline,
+          createdAt: order.created_at,
+          articlesCount: order.items ? (Array.isArray(order.items) ? order.items.length : 0) : 0,
+          unreadMessages: 0,
+          hasArbitration: false,
+          order: order,
+        };
+      });
+
+      // Fetch prices
+      const orderIds = transformed.map((o) => o.id);
+      if (orderIds.length > 0) {
         const { data: bids } = await supabase
           .from('bids')
           .select('order_id, price')
@@ -175,40 +258,81 @@ function ManagerExchange({ user, profile }) {
         }));
 
         setCompletedOrders(ordersWithPrices);
+      } else {
+        setCompletedOrders(transformed);
       }
     } catch (error) {
       console.error('Error in fetchCompletedOrders:', error);
+      setCompletedOrders([]);
     }
   };
 
   const fetchArbitrationOrders = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
-        .select(`
-          *,
-          client:profiles!orders_client_id_fkey (
-            full_name,
-            id
-          ),
-          executor:profiles!orders_accepted_packer_id_fkey (
-            full_name,
-            id
-          )
-        `)
+        .select('*')
         .eq('is_disputed', true)
         .order('updated_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching arbitration orders:', error);
-      } else {
-        const transformed = (data || []).map((order) => ({
+      if (ordersError) {
+        console.error('Error fetching arbitration orders:', ordersError);
+        setArbitrationOrders([]);
+        setArbitrationCount(0);
+        return;
+      }
+
+      if (!ordersData || ordersData.length === 0) {
+        setArbitrationOrders([]);
+        setArbitrationCount(0);
+        return;
+      }
+
+      // Get unique client and executor IDs
+      const clientIds = [...new Set(ordersData.map(o => o.client_id).filter(Boolean))];
+      const executorIds = [...new Set(ordersData.map(o => o.accepted_packer_id).filter(Boolean))];
+
+      // Fetch profiles
+      const profilesMap = {};
+      
+      if (clientIds.length > 0) {
+        const { data: clientProfiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', clientIds);
+        
+        if (clientProfiles) {
+          clientProfiles.forEach(profile => {
+            profilesMap[profile.id] = profile;
+          });
+        }
+      }
+
+      if (executorIds.length > 0) {
+        const { data: executorProfiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', executorIds);
+        
+        if (executorProfiles) {
+          executorProfiles.forEach(profile => {
+            profilesMap[profile.id] = profile;
+          });
+        }
+      }
+
+      // Transform orders
+      const transformed = ordersData.map((order) => {
+        const clientProfile = order.client_id ? profilesMap[order.client_id] : null;
+        const executorProfile = order.accepted_packer_id ? profilesMap[order.accepted_packer_id] : null;
+
+        return {
           id: order.id,
           title: order.title,
-          clientName: order.client?.full_name || 'Клиент',
-          clientId: order.client?.id || '',
-          executorName: order.executor?.full_name || 'Исполнитель',
-          executorId: order.executor?.id || '',
+          clientName: clientProfile?.full_name || 'Клиент',
+          clientId: order.client_id || '',
+          executorName: executorProfile?.full_name || 'Исполнитель',
+          executorId: order.accepted_packer_id || '',
           status: mapOrderStatus(order.status),
           budget: order.budget ? `${order.budget.toLocaleString('ru-RU')} ₽` : 'Не указан',
           deadline: order.deadline,
@@ -219,13 +343,15 @@ function ManagerExchange({ user, profile }) {
           arbitrationRequestedBy: 'client', // TODO: Determine from messages or order metadata
           arbitrationRequestedAt: order.updated_at,
           order: order,
-        }));
+        };
+      });
 
-        setArbitrationOrders(transformed);
-        setArbitrationCount(transformed.length);
-      }
+      setArbitrationOrders(transformed);
+      setArbitrationCount(transformed.length);
     } catch (error) {
       console.error('Error in fetchArbitrationOrders:', error);
+      setArbitrationOrders([]);
+      setArbitrationCount(0);
     }
   };
 
@@ -338,17 +464,36 @@ function ManagerExchange({ user, profile }) {
         }}
         arbitrationCount={arbitrationCount}
         unreadCount={unreadCount}
+        profile={profile}
+        isMobileOpen={isMobileMenuOpen}
+        onMobileClose={() => setIsMobileMenuOpen(false)}
       />
 
-      <main className="flex-1 overflow-auto relative">
-        <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
-        </div>
-        {currentView === 'all-orders' && <AllOrders orders={allOrders} onSelect={handleSelectOrder} />}
-        {currentView === 'completed' && <CompletedOrders orders={completedOrders} onSelect={handleSelectOrder} />}
-        {currentView === 'arbitration' && <ArbitrationList orders={arbitrationOrders} onSelect={handleSelectOrder} />}
-        {currentView === 'estimation' && (
-          <PriceEstimation estimations={estimationOrders} onSelect={handleSelectOrder} user={user} onCreate={fetchAllData} />
+      <main className="flex-1 overflow-hidden relative">
+        {currentView !== 'order-detail' && (
+          <>
+            <div className="sticky top-0 z-30 lg:static flex items-center justify-between p-4 lg:p-0 lg:absolute lg:top-4 lg:right-4 bg-background lg:bg-transparent border-b lg:border-0 border-border">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                onClick={() => setIsMobileMenuOpen(true)}
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+              <div className="lg:block">
+                <ThemeToggle />
+              </div>
+            </div>
+            <div className="overflow-auto">
+              {currentView === 'all-orders' && <AllOrders orders={allOrders} onSelect={handleSelectOrder} />}
+              {currentView === 'completed' && <CompletedOrders orders={completedOrders} onSelect={handleSelectOrder} />}
+              {currentView === 'arbitration' && <ArbitrationList orders={arbitrationOrders} onSelect={handleSelectOrder} />}
+              {currentView === 'estimation' && (
+                <PriceEstimation estimations={estimationOrders} onSelect={handleSelectOrder} user={user} onCreate={fetchAllData} />
+              )}
+            </div>
+          </>
         )}
         {currentView === 'order-detail' && selectedOrder && (
           <ManagerOrderDetail order={selectedOrder} onBack={handleBack} user={user} profile={profile} onUpdate={handleOrderUpdated} />

@@ -28,6 +28,16 @@ export default function ManagerOrderDetail({ order, onBack, user, profile, onUpd
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Validate order on mount
+  useEffect(() => {
+    if (!order) {
+      setError('Заказ не передан');
+    } else if (!order.id) {
+      setError('ID заказа отсутствует');
+    }
+  }, [order]);
 
   useEffect(() => {
     fetchMessages();
@@ -147,9 +157,28 @@ export default function ManagerOrderDetail({ order, onBack, user, profile, onUpd
 
   const canConnect = order.status !== 'completed' && order.status !== 'active';
 
+  if (error || !order || !order.id) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center p-8">
+          <p className="text-destructive mb-2">{error || 'Заказ не найден'}</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            {order ? `Order data: ${JSON.stringify(Object.keys(order))}` : 'Order is null'}
+          </p>
+          <Button onClick={onBack} className="mt-4">
+            Назад
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Ensure order.order exists, if not use order itself
+  const orderData = order.order || order;
+
   return (
-    <div className="flex flex-col h-screen">
-      <div className="p-6 border-b border-border bg-card">
+    <div className="flex flex-col absolute inset-0 bg-background" style={{ minHeight: '100vh' }}>
+      <div className="p-6 border-b border-border bg-card flex-shrink-0">
         <div className="flex items-center gap-4 mb-4">
           <Button variant="ghost" size="icon" onClick={onBack}>
             <ArrowLeft className="w-5 h-5" />
@@ -172,7 +201,7 @@ export default function ManagerOrderDetail({ order, onBack, user, profile, onUpd
                 </Badge>
               )}
             </div>
-            <p className="text-sm text-muted-foreground mt-1">Заказ #{order.id.slice(0, 8)}</p>
+            <p className="text-sm text-muted-foreground mt-1">Заказ #{String(order.id || '').slice(0, 8)}</p>
           </div>
 
           {canConnect && !isConnected && (
@@ -212,7 +241,7 @@ export default function ManagerOrderDetail({ order, onBack, user, profile, onUpd
                       <p className="text-xs text-muted-foreground">Клиент</p>
                       <p className="font-medium text-foreground">{order.clientName}</p>
                     </div>
-                    <Badge variant="outline">ID: {order.clientId.slice(0, 8)}</Badge>
+                    <Badge variant="outline">ID: {order.clientId ? order.clientId.slice(0, 8) : 'N/A'}</Badge>
                   </div>
                   {order.executorName && (
                     <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
@@ -220,7 +249,7 @@ export default function ManagerOrderDetail({ order, onBack, user, profile, onUpd
                         <p className="text-xs text-muted-foreground">Исполнитель</p>
                         <p className="font-medium text-foreground">{order.executorName}</p>
                       </div>
-                      <Badge variant="outline">ID: {order.executorId?.slice(0, 8)}</Badge>
+                      <Badge variant="outline">ID: {order.executorId ? order.executorId.slice(0, 8) : 'N/A'}</Badge>
                     </div>
                   )}
                 </CardContent>
@@ -306,9 +335,9 @@ export default function ManagerOrderDetail({ order, onBack, user, profile, onUpd
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {order.order?.items && Array.isArray(order.order.items) && order.order.items.length > 0 ? (
+                  {orderData?.items && Array.isArray(orderData.items) && orderData.items.length > 0 ? (
                     <div className="space-y-2">
-                      {order.order.items.map((article, index) => (
+                      {orderData.items.map((article, index) => (
                         <div key={index} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
                           <div>
                             <p className="font-medium text-foreground">{article.name || 'Без названия'}</p>
@@ -345,15 +374,18 @@ export default function ManagerOrderDetail({ order, onBack, user, profile, onUpd
           </div>
 
           <div className="flex-1 overflow-auto p-4">
-            {order.order ? (
+            {orderData && orderData.id ? (
               <OrderChat
-                order={order.order}
+                order={orderData}
                 currentUser={user}
                 currentUserProfile={profile}
-                selectedPackerId={order.order.accepted_packer_id}
+                selectedPackerId={orderData.accepted_packer_id}
               />
             ) : (
-              <div className="text-center py-8 text-muted-foreground">Загрузка чата...</div>
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Загрузка чата...</p>
+                <p className="text-xs mt-2">Order ID: {order.id || 'N/A'}</p>
+              </div>
             )}
           </div>
 

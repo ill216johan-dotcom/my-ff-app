@@ -175,35 +175,37 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
   // If order is in progress, show only details and chat with selected packer
   if (isInProgress && packaging.order?.accepted_packer_id) {
     return (
-      <div className="flex h-full">
-        <div className="flex-1 p-8 overflow-auto">
+      <div className="flex flex-col lg:flex-row h-full">
+        <div className="flex-1 p-4 lg:p-8 overflow-auto">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+            className="flex items-center gap-2 text-sm lg:text-base text-muted-foreground hover:text-foreground transition-colors mb-4 lg:mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
             Назад к списку
           </button>
 
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-semibold text-foreground">{packaging.title}</h1>
-              <Badge className="bg-accent/20 text-accent">В работе</Badge>
-              {arbitrationRequested && (
-                <Badge className="bg-orange-500/20 text-orange-400 gap-1">
-                  <Shield className="w-3 h-3" />
-                  Арбитраж
-                </Badge>
-              )}
+          <div className="mb-6 lg:mb-8">
+            <div className="flex flex-wrap items-center gap-2 lg:gap-3 mb-2">
+              <h1 className="text-xl lg:text-2xl font-semibold text-foreground break-words">{packaging.title}</h1>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-accent/20 text-accent text-xs lg:text-sm">В работе</Badge>
+                {arbitrationRequested && (
+                  <Badge className="bg-orange-500/20 text-orange-400 gap-1 text-xs lg:text-sm">
+                    <Shield className="w-3 h-3" />
+                    Арбитраж
+                  </Badge>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-3 h-3 lg:w-4 lg:h-4" />
                 Создано {new Date(packaging.createdAt).toLocaleDateString('ru-RU')}
               </span>
               {deadlineDate && (
                 <span className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4" />
+                  <Clock className="w-3 h-3 lg:w-4 lg:h-4" />
                   Дедлайн: {deadlineDate.toLocaleDateString('ru-RU')}
                 </span>
               )}
@@ -211,18 +213,18 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
           </div>
 
           {canRequestArbitration && !arbitrationRequested && (
-            <div className="mb-6 p-4 rounded-lg border bg-destructive/10 border-destructive/30 flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 mt-0.5 text-destructive" />
-              <div className="flex-1">
-                <p className="font-medium text-destructive">Дедлайн просрочен</p>
-                <p className="text-sm text-muted-foreground mt-1">
+            <div className="mb-4 lg:mb-6 p-3 lg:p-4 rounded-lg border bg-destructive/10 border-destructive/30 flex flex-col lg:flex-row lg:items-start gap-3">
+              <AlertTriangle className="w-5 h-5 mt-0.5 text-destructive flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm lg:text-base text-destructive">Дедлайн просрочен</p>
+                <p className="text-xs lg:text-sm text-muted-foreground mt-1">
                   Прошло более 24 часов с момента дедлайна. Вы можете запросить арбитраж.
                 </p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-transparent border-destructive/50 text-destructive hover:bg-destructive/10"
+                className="bg-transparent border-destructive/50 text-destructive hover:bg-destructive/10 w-full lg:w-auto"
                 onClick={() => setShowArbitrationModal(true)}
               >
                 <Shield className="w-4 h-4 mr-2" />
@@ -231,24 +233,24 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
             </div>
           )}
 
-          <Card className="bg-card border-border mb-6">
-            <CardHeader>
-              <CardTitle className="text-lg">Детали задания</CardTitle>
+          <Card className="bg-card border-border mb-4 lg:mb-6">
+            <CardHeader className="p-4 lg:p-6">
+              <CardTitle className="text-base lg:text-lg">Детали задания</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="p-4 bg-secondary rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-1">Артикулов</p>
-                  <p className="text-xl font-semibold text-foreground">{packaging.articlesCount}</p>
+            <CardContent className="space-y-4 p-4 lg:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+                <div className="p-3 lg:p-4 bg-secondary rounded-lg">
+                  <p className="text-xs lg:text-sm text-muted-foreground mb-1">Артикулов</p>
+                  <p className="text-lg lg:text-xl font-semibold text-foreground">{packaging.articlesCount}</p>
                 </div>
-                <div className="p-4 bg-secondary rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-1">Бюджет</p>
-                  <p className="text-xl font-semibold text-foreground">{packaging.budget}</p>
+                <div className="p-3 lg:p-4 bg-secondary rounded-lg">
+                  <p className="text-xs lg:text-sm text-muted-foreground mb-1">Бюджет</p>
+                  <p className="text-lg lg:text-xl font-semibold text-foreground">{packaging.budget}</p>
                 </div>
                 {deadlineDate && (
-                  <div className="p-4 bg-secondary rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Срок</p>
-                    <p className="text-xl font-semibold text-foreground">
+                  <div className="p-3 lg:p-4 bg-secondary rounded-lg">
+                    <p className="text-xs lg:text-sm text-muted-foreground mb-1">Срок</p>
+                    <p className="text-lg lg:text-xl font-semibold text-foreground">
                       {deadlineDate.toLocaleDateString('ru-RU')}
                     </p>
                   </div>
@@ -257,24 +259,24 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
 
               {packaging.order?.items && Array.isArray(packaging.order.items) && packaging.order.items.length > 0 && (
                 <div className="pt-4">
-                  <h4 className="font-medium text-foreground mb-3">Список артикулов</h4>
-                  <div className="border border-border rounded-lg overflow-hidden">
-                    <table className="w-full text-sm">
+                  <h4 className="font-medium text-sm lg:text-base text-foreground mb-3">Список артикулов</h4>
+                  <div className="border border-border rounded-lg overflow-hidden overflow-x-auto">
+                    <table className="w-full text-xs lg:text-sm min-w-[600px]">
                       <thead className="bg-secondary">
                         <tr>
-                          <th className="text-left p-3 text-muted-foreground font-medium">SKU</th>
-                          <th className="text-left p-3 text-muted-foreground font-medium">Название</th>
-                          <th className="text-left p-3 text-muted-foreground font-medium">Кол-во</th>
-                          <th className="text-left p-3 text-muted-foreground font-medium">Тип</th>
+                          <th className="text-left p-2 lg:p-3 text-muted-foreground font-medium">SKU</th>
+                          <th className="text-left p-2 lg:p-3 text-muted-foreground font-medium">Название</th>
+                          <th className="text-left p-2 lg:p-3 text-muted-foreground font-medium">Кол-во</th>
+                          <th className="text-left p-2 lg:p-3 text-muted-foreground font-medium">Тип</th>
                         </tr>
                       </thead>
                       <tbody>
                         {packaging.order.items.slice(0, 10).map((item, idx) => (
                           <tr key={idx} className="border-t border-border">
-                            <td className="p-3 text-foreground">{item.sku || '-'}</td>
-                            <td className="p-3 text-foreground">{item.name || '-'}</td>
-                            <td className="p-3 text-foreground">{item.quantity || 0}</td>
-                            <td className="p-3 text-foreground">{item.packagingType || '-'}</td>
+                            <td className="p-2 lg:p-3 text-foreground">{item.sku || '-'}</td>
+                            <td className="p-2 lg:p-3 text-foreground">{item.name || '-'}</td>
+                            <td className="p-2 lg:p-3 text-foreground">{item.quantity || 0}</td>
+                            <td className="p-2 lg:p-3 text-foreground">{item.packagingType || '-'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -286,7 +288,7 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
           </Card>
         </div>
 
-        <div className="w-96 border-l border-border bg-card">
+        <div className="w-full lg:w-96 border-t lg:border-l lg:border-t-0 border-border bg-card">
           <OrderChat
             order={packaging.order}
             currentUser={user}
@@ -300,29 +302,29 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
 
   // If order is active (searching), show bids and details
   return (
-    <div className="flex h-full">
-      <div className="flex-1 p-8 overflow-auto">
+    <div className="flex flex-col lg:flex-row h-full">
+      <div className="flex-1 p-4 lg:p-8 overflow-auto">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+          className="flex items-center gap-2 text-sm lg:text-base text-muted-foreground hover:text-foreground transition-colors mb-4 lg:mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           Назад к списку
         </button>
 
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-semibold text-foreground">{packaging.title}</h1>
-            <Badge className="bg-primary/20 text-primary">Активно</Badge>
+        <div className="mb-6 lg:mb-8">
+          <div className="flex flex-wrap items-center gap-2 lg:gap-3 mb-2">
+            <h1 className="text-xl lg:text-2xl font-semibold text-foreground break-words">{packaging.title}</h1>
+            <Badge className="bg-primary/20 text-primary text-xs lg:text-sm">Активно</Badge>
           </div>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm text-muted-foreground">
             <span className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-3 h-3 lg:w-4 lg:h-4" />
               Создано {new Date(packaging.createdAt).toLocaleDateString('ru-RU')}
             </span>
             {deadlineDate && (
               <span className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4" />
+                <Clock className="w-3 h-3 lg:w-4 lg:h-4" />
                 Дедлайн: {deadlineDate.toLocaleDateString('ru-RU')}
               </span>
             )}
@@ -372,25 +374,25 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
             )}
           </TabsContent>
 
-          <TabsContent value="details" className="mt-6">
+          <TabsContent value="details" className="mt-4 lg:mt-6">
             <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-lg">Информация о задании</CardTitle>
+              <CardHeader className="p-4 lg:p-6">
+                <CardTitle className="text-base lg:text-lg">Информация о задании</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="p-4 bg-secondary rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Артикулов</p>
-                    <p className="text-xl font-semibold text-foreground">{packaging.articlesCount}</p>
+              <CardContent className="space-y-4 p-4 lg:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+                  <div className="p-3 lg:p-4 bg-secondary rounded-lg">
+                    <p className="text-xs lg:text-sm text-muted-foreground mb-1">Артикулов</p>
+                    <p className="text-lg lg:text-xl font-semibold text-foreground">{packaging.articlesCount}</p>
                   </div>
-                  <div className="p-4 bg-secondary rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Бюджет</p>
-                    <p className="text-xl font-semibold text-foreground">{packaging.budget}</p>
+                  <div className="p-3 lg:p-4 bg-secondary rounded-lg">
+                    <p className="text-xs lg:text-sm text-muted-foreground mb-1">Бюджет</p>
+                    <p className="text-lg lg:text-xl font-semibold text-foreground">{packaging.budget}</p>
                   </div>
                   {deadlineDate && (
-                    <div className="p-4 bg-secondary rounded-lg">
-                      <p className="text-sm text-muted-foreground mb-1">Срок</p>
-                      <p className="text-xl font-semibold text-foreground">
+                    <div className="p-3 lg:p-4 bg-secondary rounded-lg">
+                      <p className="text-xs lg:text-sm text-muted-foreground mb-1">Срок</p>
+                      <p className="text-lg lg:text-xl font-semibold text-foreground">
                         {deadlineDate.toLocaleDateString('ru-RU')}
                       </p>
                     </div>
@@ -399,24 +401,24 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
 
                 {packaging.order?.items && Array.isArray(packaging.order.items) && packaging.order.items.length > 0 && (
                   <div className="pt-4">
-                    <h4 className="font-medium text-foreground mb-3">Список артикулов</h4>
-                    <div className="border border-border rounded-lg overflow-hidden">
-                      <table className="w-full text-sm">
+                    <h4 className="font-medium text-sm lg:text-base text-foreground mb-3">Список артикулов</h4>
+                    <div className="border border-border rounded-lg overflow-hidden overflow-x-auto">
+                      <table className="w-full text-xs lg:text-sm min-w-[600px]">
                         <thead className="bg-secondary">
                           <tr>
-                            <th className="text-left p-3 text-muted-foreground font-medium">SKU</th>
-                            <th className="text-left p-3 text-muted-foreground font-medium">Название</th>
-                            <th className="text-left p-3 text-muted-foreground font-medium">Кол-во</th>
-                            <th className="text-left p-3 text-muted-foreground font-medium">Тип</th>
+                            <th className="text-left p-2 lg:p-3 text-muted-foreground font-medium">SKU</th>
+                            <th className="text-left p-2 lg:p-3 text-muted-foreground font-medium">Название</th>
+                            <th className="text-left p-2 lg:p-3 text-muted-foreground font-medium">Кол-во</th>
+                            <th className="text-left p-2 lg:p-3 text-muted-foreground font-medium">Тип</th>
                           </tr>
                         </thead>
                         <tbody>
                           {packaging.order.items.map((item, idx) => (
                             <tr key={idx} className="border-t border-border">
-                              <td className="p-3 text-foreground">{item.sku || '-'}</td>
-                              <td className="p-3 text-foreground">{item.name || '-'}</td>
-                              <td className="p-3 text-foreground">{item.quantity || 0}</td>
-                              <td className="p-3 text-foreground">{item.packagingType || '-'}</td>
+                              <td className="p-2 lg:p-3 text-foreground">{item.sku || '-'}</td>
+                              <td className="p-2 lg:p-3 text-foreground">{item.name || '-'}</td>
+                              <td className="p-2 lg:p-3 text-foreground">{item.quantity || 0}</td>
+                              <td className="p-2 lg:p-3 text-foreground">{item.packagingType || '-'}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -431,32 +433,32 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
       </div>
 
       {selectedResponse && (
-        <div className="w-96 border-l border-border bg-card flex flex-col">
-          <div className="p-4 border-b border-border">
+        <div className="w-full lg:w-96 border-t lg:border-l lg:border-t-0 border-border bg-card flex flex-col">
+          <div className="p-3 lg:p-4 border-b border-border">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-primary/20 text-primary">
+              <div className="flex items-center gap-2 lg:gap-3 min-w-0 flex-1">
+                <Avatar className="h-8 w-8 lg:h-10 lg:w-10 flex-shrink-0">
+                  <AvatarFallback className="bg-primary/20 text-primary text-xs lg:text-sm">
                     {selectedResponse.executorName.slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <h3 className="font-medium text-foreground">{selectedResponse.executorName}</h3>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-medium text-sm lg:text-base text-foreground truncate">{selectedResponse.executorName}</h3>
+                  <div className="flex items-center gap-1 text-xs lg:text-sm text-muted-foreground">
+                    <Star className="w-3 h-3 lg:w-3.5 lg:h-3.5 fill-yellow-500 text-yellow-500" />
                     {selectedResponse.executorRating}
                   </div>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedResponse(null)}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground flex-shrink-0 ml-2"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm">
               <div>
                 <span className="text-muted-foreground">Цена: </span>
                 <span className="font-medium text-foreground">{selectedResponse.price}</span>
@@ -469,18 +471,18 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
               </div>
             </div>
 
-            <div className="flex gap-2 mt-4">
-              <Button className="flex-1 gap-2" onClick={() => handleAcceptBid(selectedResponse)}>
+            <div className="flex gap-2 mt-3 lg:mt-4">
+              <Button className="flex-1 gap-2 text-sm lg:text-base" onClick={() => handleAcceptBid(selectedResponse)}>
                 <Check className="w-4 h-4" />
                 Принять
               </Button>
-              <Button variant="outline" className="flex-1 bg-transparent">
+              <Button variant="outline" className="flex-1 bg-transparent text-sm lg:text-base">
                 Отклонить
               </Button>
             </div>
           </div>
 
-          <div className="flex-1 p-4 overflow-auto">
+          <div className="flex-1 p-3 lg:p-4 overflow-auto">
             <OrderChat
               order={packaging.order}
               currentUser={user}
@@ -492,8 +494,8 @@ export default function PackagingDetail({ packaging, onBack, user, profile, onUp
       )}
 
       {showArbitrationModal && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-card border border-border rounded-xl p-4 lg:p-6 max-w-md w-full shadow-xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center">
                 <Shield className="w-6 h-6 text-orange-400" />
@@ -532,45 +534,45 @@ function ResponseCard({ response, isSelected, onSelect, onAccept }) {
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left bg-card border rounded-xl p-5 transition-all ${
+      className={`w-full text-left bg-card border rounded-xl p-4 lg:p-5 transition-all ${
         isSelected ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/50'
       }`}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-primary/20 text-primary">{response.executorName.slice(0, 2)}</AvatarFallback>
+      <div className="flex items-start justify-between mb-3 gap-3">
+        <div className="flex items-center gap-2 lg:gap-3 min-w-0 flex-1">
+          <Avatar className="h-8 w-8 lg:h-10 lg:w-10 flex-shrink-0">
+            <AvatarFallback className="bg-primary/20 text-primary text-xs lg:text-sm">{response.executorName.slice(0, 2)}</AvatarFallback>
           </Avatar>
-          <div>
-            <h4 className="font-medium text-foreground">{response.executorName}</h4>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+          <div className="min-w-0 flex-1">
+            <h4 className="font-medium text-sm lg:text-base text-foreground truncate">{response.executorName}</h4>
+            <div className="flex items-center gap-1 text-xs lg:text-sm text-muted-foreground">
+              <Star className="w-3 h-3 lg:w-3.5 lg:h-3.5 fill-yellow-500 text-yellow-500" />
               {response.executorRating}
             </div>
           </div>
         </div>
         {response.unreadCount > 0 && (
-          <span className="w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+          <span className="w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center flex-shrink-0">
             {response.unreadCount}
           </span>
         )}
       </div>
 
-      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{response.message}</p>
+      <p className="text-xs lg:text-sm text-muted-foreground mb-3 lg:mb-4 line-clamp-2">{response.message}</p>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div className="flex items-center gap-3 lg:gap-4">
           <div>
             <p className="text-xs text-muted-foreground">Цена</p>
-            <p className="font-semibold text-foreground">{response.price}</p>
+            <p className="font-semibold text-sm lg:text-base text-foreground">{response.price}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Срок</p>
-            <p className="font-medium text-foreground">{new Date(response.deadline).toLocaleDateString('ru-RU')}</p>
+            <p className="font-medium text-sm lg:text-base text-foreground">{new Date(response.deadline).toLocaleDateString('ru-RU')}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-sm text-primary">
-          <MessageSquare className="w-4 h-4" />
+        <div className="flex items-center gap-2 text-xs lg:text-sm text-primary">
+          <MessageSquare className="w-3 h-3 lg:w-4 lg:h-4" />
           Открыть чат
         </div>
       </div>

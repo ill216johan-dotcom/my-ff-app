@@ -28,10 +28,10 @@ export default function MyOrders({ orders, onSelect }) {
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-foreground">Мои упаковки</h1>
-        <p className="text-muted-foreground mt-1">Активные и завершённые заказы</p>
+    <div className="p-4 lg:p-8">
+      <div className="mb-6 lg:mb-8">
+        <h1 className="text-xl lg:text-2xl font-semibold text-foreground">Мои упаковки</h1>
+        <p className="text-sm lg:text-base text-muted-foreground mt-1">Активные и завершённые заказы</p>
       </div>
 
       {activeOrders.length > 0 && (
@@ -47,15 +47,16 @@ export default function MyOrders({ orders, onSelect }) {
                 <button
                   key={order.id}
                   onClick={() => onSelect(order)}
-                  className="w-full text-left bg-card border border-border rounded-xl p-5 hover:border-accent/50 transition-all group"
+                  className="w-full text-left bg-card border border-border rounded-xl p-4 lg:p-5 hover:border-accent/50 transition-all group"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-foreground group-hover:text-accent transition-colors">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 lg:gap-3 mb-2">
+                        <h3 className="font-medium text-sm lg:text-base text-foreground group-hover:text-accent transition-colors break-words">
                           {order.title}
                         </h3>
                         <Badge className={cn(
+                          'text-xs lg:text-sm',
                           order.status === 'in_progress' ? 'bg-accent/20 text-accent' :
                           order.status === 'awaiting_payment' ? 'bg-purple-500/20 text-purple-500' :
                           'bg-muted text-muted-foreground'
@@ -66,10 +67,10 @@ export default function MyOrders({ orders, onSelect }) {
                         </Badge>
                       </div>
 
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                        <span>Клиент: {order.clientName || 'Клиент'}</span>
+                      <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm text-muted-foreground mb-3">
+                        <span className="truncate">Клиент: {order.clientName || 'Клиент'}</span>
                         <span className="flex items-center gap-1.5">
-                          <Package className="w-4 h-4" />
+                          <Package className="w-3 h-3 lg:w-4 lg:h-4" />
                           {order.articlesCount || 0} артикулов
                         </span>
                       </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Menu } from 'lucide-react';
 import { supabase } from '../../supabaseClient.js';
 import { getNotificationSummary } from '../../utils/notifications.js';
 import ClientSidebar from './client/ClientSidebar.jsx';
@@ -6,6 +7,7 @@ import PackagingList from './client/PackagingList.jsx';
 import CreatePackaging from './client/CreatePackaging.jsx';
 import PackagingDetail from './client/PackagingDetail.jsx';
 import ThemeToggle from '../ThemeToggle.jsx';
+import Button from './ui/Button.jsx';
 
 /**
  * Client Exchange Dashboard
@@ -17,12 +19,13 @@ function ClientExchange({ user, profile }) {
   const [packagings, setPackagings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState({ packagings: 0, messages: 0 });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
       fetchPackagings();
     }
-  }, [user]);
+  }, [user, profile]);
 
   useEffect(() => {
     if (user && profile && packagings.length > 0) {
@@ -31,15 +34,17 @@ function ClientExchange({ user, profile }) {
   }, [user, profile, packagings]);
 
   const fetchPackagings = async () => {
-    if (!user) return;
+    if (!user || !profile) return;
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Оптимизированный запрос: исключаем тяжелое поле items для быстрой загрузки списка
+      const { data, error, count } = await supabase
         .from('orders')
-        .select('*')
+        .select('id, title, status, deadline, budget, created_at', { count: 'exact' })
         .eq('client_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(0, 49);
 
       if (error) {
         console.error('Error fetching orders:', error);
@@ -52,10 +57,10 @@ function ClientExchange({ user, profile }) {
           createdAt: order.created_at,
           deadline: order.deadline,
           budget: order.budget ? `${order.budget.toLocaleString('ru-RU')} ₽` : 'Не указан',
-          articlesCount: order.items ? (Array.isArray(order.items) ? order.items.length : 0) : 0,
+          articlesCount: 0, // Excluded items column for performance - will be loaded in detail view
           responsesCount: 0, // Will be fetched separately
           unreadMessages: 0, // Will be fetched separately
-          order: order // Keep original order data
+          order: order // Keep original order data (without items)
         }));
         setPackagings(transformed);
         
@@ -165,11 +170,24 @@ function ClientExchange({ user, profile }) {
         currentView={currentView} 
         onNavigate={setCurrentView}
         notifications={notifications}
+        profile={profile}
+        isMobileOpen={isMobileMenuOpen}
+        onMobileClose={() => setIsMobileMenuOpen(false)}
       />
 
       <main className="flex-1 overflow-auto relative">
-        <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
+        <div className="sticky top-0 z-30 lg:static flex items-center justify-between p-4 lg:p-0 lg:absolute lg:top-2 lg:right-4 bg-background lg:bg-transparent border-b lg:border-0 border-border">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+          <div className="lg:block">
+            <ThemeToggle />
+          </div>
         </div>
         {currentView === 'list' && (
           <PackagingList
