@@ -23,26 +23,46 @@ function ExchangeNew() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) {
-          console.error('Error fetching user:', userError);
+        // Оптимизация: используем Promise.all для параллельной загрузки session и профиля
+        // Используем getSession() вместо getUser() - он быстрее (кешируется)
+        // Запрос к профилю использует RLS с auth.uid(), поэтому может выполняться параллельно
+        const [sessionResult, profileResult] = await Promise.all([
+          supabase.auth.getSession(),
+          // Запрос профиля через RLS (auth.uid() автоматически применяется RLS политикой)
+          // Если RLS требует явного фильтра, этот запрос вернет ошибку и выполнится fallback
+          supabase
+            .from('profiles')
+            .select('id, role, full_name') // Выбираем только нужные поля вместо select('*')
+            .single()
+        ]);
+
+        const { data: { session }, error: sessionError } = sessionResult;
+        const { data: profileData, error: profileError } = profileResult;
+
+        if (sessionError || !session?.user) {
+          setLoading(false);
           return;
         }
 
-        setUser(user);
+        const userId = session.user.id;
+        setUser(session.user);
 
-        if (user) {
-          const { data: profileData, error: profileError } = await supabase
+        // Если профиль получен успешно через RLS, используем его
+        // Иначе делаем fallback с явным userId
+        if (!profileError && profileData?.id === userId) {
+          setProfile(profileData);
+        } else {
+          // Fallback: явный запрос с userId (если RLS не позволила получить профиль)
+          const { data: fallbackProfile, error: fallbackError } = await supabase
             .from('profiles')
-            .select('*')
-            .eq('id', user.id)
+            .select('id, role, full_name') // Выбираем только нужные поля
+            .eq('id', userId)
             .single();
 
-          if (profileError) {
-            console.error('Error fetching profile:', profileError);
+          if (fallbackError) {
+            console.error('Error fetching profile:', fallbackError);
           } else {
-            setProfile(profileData);
+            setProfile(fallbackProfile);
           }
         }
       } catch (error) {
