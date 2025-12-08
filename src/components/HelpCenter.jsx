@@ -235,7 +235,7 @@ const HelpCenter = ({ data }) => {
       {/* Mobile Sidebar Toggle Button */}
       <button 
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-        className="md:hidden fixed bottom-6 right-6 z-50 p-3 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors"
+        className="md:hidden fixed bottom-6 left-6 z-50 p-3 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors"
         title="Открыть меню"
       >
         <Menu size={20}/>
