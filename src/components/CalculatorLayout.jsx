@@ -191,7 +191,10 @@ const CalculatorLayout = ({ children, title }) => {
 
         {/* Mobile Navigation Dropdown */}
         <div className="md:hidden border-t border-slate-200 dark:border-neutral-800">
-          <nav className="w-full px-6 py-2 flex gap-1 justify-center overflow-x-auto">
+          <nav 
+            className="w-full px-6 py-2 pb-3 flex flex-nowrap gap-1 justify-start overflow-x-auto whitespace-nowrap" 
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
             {navItems.map((item) => (
               <Link
                 key={item.path}

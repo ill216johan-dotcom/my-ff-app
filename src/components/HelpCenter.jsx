@@ -356,7 +356,80 @@ const HelpCenter = ({ data }) => {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex items-center justify-center h-[50vh] text-slate-400 dark:text-neutral-600"><div className="animate-pulse">Загрузка...</div></div>
+                    <div className="animate-in fade-in duration-300">
+                        {/* Welcome Header */}
+                        <div className="mb-8">
+                            <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight text-slate-900 dark:text-white">База знаний</h1>
+                            <p className="text-slate-600 dark:text-neutral-400 text-lg">Выберите категорию, чтобы начать</p>
+                        </div>
+
+                        {/* Mobile-Friendly Category Browser */}
+                        <div className="space-y-3">
+                            {categories.map(cat => {
+                                const isExpanded = expandedCategories.includes(cat.id);
+                                const articleCount = (cat.articles || []).length;
+                                
+                                return (
+                                    <div key={cat.id} className="border border-slate-200 dark:border-neutral-800 rounded-lg overflow-hidden bg-white dark:bg-neutral-900/50 shadow-sm hover:shadow-md transition-shadow">
+                                        {/* Category Header */}
+                                        <button 
+                                            onClick={() => toggleCategory(cat.id)}
+                                            className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20">
+                                                    <Folder size={20} className="text-indigo-600 dark:text-indigo-400" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-semibold text-slate-900 dark:text-white text-base md:text-lg">{cat.title}</h3>
+                                                    <p className="text-sm text-slate-500 dark:text-neutral-500">{articleCount} {articleCount === 1 ? 'статья' : articleCount < 5 ? 'статьи' : 'статей'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-slate-400 dark:text-neutral-500 transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                                                <ChevronDown size={20} />
+                                            </div>
+                                        </button>
+
+                                        {/* Articles List */}
+                                        {isExpanded && (
+                                            <div className="border-t border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/30">
+                                                <div className="divide-y divide-slate-200 dark:divide-neutral-800">
+                                                    {(cat.articles || []).map((art, index) => (
+                                                        <button
+                                                            key={art.id}
+                                                            onClick={() => openArticle(art, cat.id)}
+                                                            className="w-full text-left p-4 hover:bg-white dark:hover:bg-neutral-800/50 transition-colors flex items-center gap-3 group"
+                                                        >
+                                                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-semibold text-sm group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:bg-indigo-600 transition-colors">
+                                                                {index + 1}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <h4 className="font-medium text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{art.title}</h4>
+                                                            </div>
+                                                            <ChevronRight size={16} className="text-slate-400 dark:text-neutral-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex-shrink-0" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Helper Text for Desktop Users */}
+                        <div className="hidden md:block mt-12 p-6 bg-indigo-50 dark:bg-indigo-900/10 rounded-lg border border-indigo-100 dark:border-indigo-900/20">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
+                                    <Package size={20} className="text-indigo-600 dark:text-indigo-400" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-slate-900 dark:text-white mb-1">Быстрый доступ</h4>
+                                    <p className="text-sm text-slate-600 dark:text-neutral-400">Используйте боковую панель для быстрой навигации по всем статьям или поиска нужной информации.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
             <aside className="hidden xl:block w-64 shrink-0 sticky top-0 h-screen overflow-y-auto py-12 pr-6">

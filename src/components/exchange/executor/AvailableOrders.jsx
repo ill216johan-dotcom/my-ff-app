@@ -52,8 +52,8 @@ export default function AvailableOrders({ orders, onSelect, user, selectedId }) 
   };
 
   return (
-    <div className="flex h-full">
-      <div className="flex-1 p-6 overflow-auto border-r border-border">
+    <div className="flex flex-col lg:flex-row lg:h-full">
+      <div className="flex-1 p-6 overflow-auto lg:border-r border-border">
         <div className="mb-6">
           <h1 className="text-xl font-semibold text-foreground">Доступные заказы</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Найдите подходящие заказы на упаковку</p>
@@ -167,7 +167,7 @@ export default function AvailableOrders({ orders, onSelect, user, selectedId }) 
       </div>
 
       {!selectedId && (
-        <div className="w-80 p-6 bg-secondary/30">
+        <div className="w-full lg:w-80 p-6 bg-secondary/30">
           <h2 className="text-sm font-medium text-foreground mb-4">Обзор рынка</h2>
 
           <div className="space-y-3">

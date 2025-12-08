@@ -16,8 +16,8 @@ export default function CompletedOrders({ orders, onSelect, selectedId }) {
   });
 
   return (
-    <div className="flex h-full">
-      <div className="flex-1 p-6 overflow-auto border-r border-border">
+    <div className="flex flex-col lg:flex-row lg:h-full">
+      <div className="flex-1 p-6 overflow-auto lg:border-r border-border">
         <div className="mb-6">
           <h1 className="text-xl font-semibold text-foreground">Завершённые упаковки</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Архив выполненных заказов</p>
@@ -96,7 +96,7 @@ export default function CompletedOrders({ orders, onSelect, selectedId }) {
       </div>
 
       {!selectedId && (
-        <div className="w-80 p-6 bg-secondary/30">
+        <div className="w-full lg:w-80 p-6 bg-secondary/30">
           <h2 className="text-sm font-medium text-foreground mb-4">Архив</h2>
           <div className="p-4 rounded-lg bg-card border border-border">
             <p className="text-sm text-foreground">

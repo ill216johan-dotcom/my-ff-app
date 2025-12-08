@@ -484,7 +484,7 @@ export default function PackagingCalculator() {
         <div className="max-w-7xl mx-auto p-4 md:p-8 flex flex-col md:flex-row gap-6">
         
         {/* LEFT: Calculator */}
-        <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-2 no-scrollbar">
+        <div className="flex-1 flex flex-col gap-4 md:overflow-y-auto md:pr-2 no-scrollbar">
           <div className={`rounded-xl shadow-lg p-6 border transition-colors ${isDarkMode ? 'bg-[#171717] border-neutral-800' : 'bg-white border-gray-200'}`}>
             
             {/* HEADER */}
@@ -680,8 +680,8 @@ export default function PackagingCalculator() {
         </div>
 
         {/* RIGHT COLUMN: SKU MANAGER */}
-        <div className="w-full md:w-80 flex flex-col gap-4 h-full">
-          <div className={`rounded-xl shadow-lg border flex flex-col h-full overflow-hidden ${isDarkMode ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+        <div className="w-full md:w-80 flex flex-col gap-4 md:h-full">
+          <div className={`rounded-xl shadow-lg border flex flex-col md:h-full overflow-hidden ${isDarkMode ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
               <div className={`p-4 border-b flex-shrink-0 ${isDarkMode ? 'border-neutral-800 bg-black' : 'border-gray-100 bg-gray-50'}`}>
                 <h3 className={`font-bold text-sm flex justify-between ${isDarkMode ? 'text-neutral-200' : 'text-gray-800'}`}>
                   <span className="flex items-center gap-2"><Package size={16} className="text-blue-500"/> Менеджер SKU</span>
@@ -702,7 +702,7 @@ export default function PackagingCalculator() {
                 </div>
               </div>
 
-              <div className={`flex-1 overflow-y-auto custom-scroll p-2 ${isDarkMode ? 'bg-neutral-900' : 'bg-gray-50/50'}`}>
+              <div className={`flex-1 overflow-y-auto custom-scroll p-2 max-h-96 md:max-h-none ${isDarkMode ? 'bg-neutral-900' : 'bg-gray-50/50'}`}>
                 {skus.length === 0 && <div className="text-center text-xs text-gray-500 mt-10">Список пуст</div>}
                 {[...skus].reverse().map(sku => {
                     const isActive = sku.id === activeSkuId;

@@ -39,8 +39,8 @@ export default function PackagingList({ packagings, onSelect, onCreate, selected
   };
 
   return (
-    <div className="flex h-full">
-      <div className="flex-1 p-6 overflow-auto border-r border-border">
+    <div className="flex flex-col lg:flex-row lg:h-full">
+      <div className="flex-1 p-6 overflow-auto lg:border-r border-border">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl font-semibold text-foreground">Мои упаковки</h1>
@@ -111,7 +111,7 @@ export default function PackagingList({ packagings, onSelect, onCreate, selected
       </div>
 
       {!selectedId && (
-        <div className="w-80 p-6 bg-secondary/30">
+        <div className="w-full lg:w-80 p-6 bg-secondary/30">
           <h2 className="text-sm font-medium text-foreground mb-4">Обзор</h2>
 
           <div className="space-y-3">
