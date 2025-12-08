@@ -233,13 +233,13 @@ const FboCalculator = () => {
 
   const handleManualILChange = (val) => setClientSettings(prev => ({ ...prev, locIndex: Number(val), isLocIndexManual: true }));
   const handleBoxChange = (id, count) => {
-    const val = Math.max(0, parseInt(count) || 0);
+    const val = count === '' ? 0 : Math.max(0, parseInt(count) || 0);
     setWarehouses(warehouses.map(w => w.id === id ? { ...w, boxCount: val } : w));
     setManualTotalBoxes(null);
     setManualTotalItems(null);
   };
   const handleTotalBoxesChange = (newTotal) => {
-      const total = Math.max(0, parseInt(newTotal) || 0);
+      const total = newTotal === '' ? 0 : Math.max(0, parseInt(newTotal) || 0);
       setManualTotalBoxes(total);
       if (anchorMode === 'items' && total > 0 && displayTotalItems > 0) {
           const newUnits = Math.ceil(displayTotalItems / total);
@@ -251,14 +251,14 @@ const FboCalculator = () => {
       distributeBoxes(total);
   };
   const handleTotalItemsChange = (newTotalItems) => {
-      const items = Math.max(0, parseInt(newTotalItems) || 0);
+      const items = newTotalItems === '' ? 0 : Math.max(0, parseInt(newTotalItems) || 0);
       setManualTotalItems(items);
       const newBoxes = Math.ceil(items / unitsPerBox);
       setManualTotalBoxes(newBoxes);
       distributeBoxes(newBoxes);
   };
   const handleUnitsPerBoxChange = (newVal) => {
-      const newUnits = Math.max(1, parseInt(newVal) || 0);
+      const newUnits = newVal === '' ? 1 : Math.max(1, parseInt(newVal) || 1);
       setManualUnitsPerBox(newUnits);
       if (anchorMode === 'items' && totalItems > 0) {
           const newBoxes = Math.ceil(totalItems / newUnits);
@@ -271,7 +271,7 @@ const FboCalculator = () => {
       setManualLiterage(isNaN(num) ? null : num);
   };
   const handleLogisticCostChange = (id, value) => {
-    const val = Math.max(0, parseInt(value) || 0);
+    const val = value === '' ? 0 : Math.max(0, parseInt(value) || 0);
     setWarehouses(warehouses.map(w => w.id === id ? { ...w, logisticCostBox: val } : w));
   };
   const distributeBoxes = (targetTotal) => {
@@ -474,7 +474,7 @@ const FboCalculator = () => {
                 {['length', 'width', 'height'].map(dim => (
                     <div key={dim} className="flex-1">
                        <label className={`text-[10px] uppercase font-bold mb-1 block ${t.subtitleText}`}>{dim === 'length' ? 'Длина' : dim === 'width' ? 'Ширина' : 'Высота'}</label>
-                       <input type="number" value={product[dim]} onChange={(e) => setProduct({...product, [dim]: Number(e.target.value)})} className={`w-full p-1 border rounded text-center text-sm outline-none ${t.inputBg} ${t.inputBorder} ${t.inputText} ${t.focusRing}`} />
+                       <input type="number" value={product[dim]} onChange={(e) => setProduct({...product, [dim]: e.target.value === '' ? 0 : Number(e.target.value)})} className={`w-full p-1 border rounded text-center text-sm outline-none ${t.inputBg} ${t.inputBorder} ${t.inputText} ${t.focusRing}`} />
                     </div>
                 ))}
              </div>
@@ -591,15 +591,15 @@ const FboCalculator = () => {
                         <div>
                             <div className="text-[10px] font-bold text-indigo-400 uppercase mb-1">За единицу товара (₽/шт)</div>
                             <div className="space-y-1">
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Обработка</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.processing} onChange={e => setFfRates({...ffRates, processing: +e.target.value})} /></div>
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Спецификация</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.specification} onChange={e => setFfRates({...ffRates, specification: +e.target.value})} /></div>
+                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Обработка</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.processing} onChange={e => setFfRates({...ffRates, processing: e.target.value === '' ? 0 : +e.target.value})} /></div>
+                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Спецификация</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.specification} onChange={e => setFfRates({...ffRates, specification: e.target.value === '' ? 0 : +e.target.value})} /></div>
                             </div>
                         </div>
                         <div>
                              <div className="text-[10px] font-bold text-indigo-400 uppercase mb-1">За короб (₽/кор)</div>
                              <div className="space-y-1">
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Сборка и марк.</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxAssembly} onChange={e => setFfRates({...ffRates, boxAssembly: +e.target.value})} /></div>
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Цена короба</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxMaterial} onChange={e => setFfRates({...ffRates, boxMaterial: +e.target.value})} /></div>
+                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Сборка и марк.</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxAssembly} onChange={e => setFfRates({...ffRates, boxAssembly: e.target.value === '' ? 0 : +e.target.value})} /></div>
+                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Цена короба</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxMaterial} onChange={e => setFfRates({...ffRates, boxMaterial: e.target.value === '' ? 0 : +e.target.value})} /></div>
                              </div>
                         </div>
                     </div>

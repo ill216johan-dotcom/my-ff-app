@@ -245,7 +245,7 @@ const HelpCenter = ({ data }) => {
       <div className="flex flex-1 -mx-6 lg:-mx-8">
 
         {/* SIDEBAR */}
-        <aside className={`fixed inset-y-0 left-0 z-40 w-full md:w-80 md:static border-r transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} bg-[#F9FAFB] dark:bg-black border-slate-200 dark:border-white/10 pt-16 md:pt-0`}>
+        <aside className={`fixed inset-y-0 left-0 z-40 w-full md:w-80 md:static border-r transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} bg-[#F9FAFB] dark:bg-black border-slate-200 dark:border-white/10 pt-20 md:pt-0`}>
           {/* Mobile Overlay */}
           {mobileMenuOpen && (
             <div 
@@ -255,7 +255,7 @@ const HelpCenter = ({ data }) => {
           )}
           
           <div className="h-full overflow-y-auto custom-scrollbar flex flex-col">
-            <div className="p-5 sticky top-0 z-10 bg-[#F9FAFB] dark:bg-black transition-colors duration-300">
+            <div className="p-5 md:sticky md:top-0 z-10 bg-[#F9FAFB] dark:bg-black transition-colors duration-300">
               {/* Search Bar */}
               <div className="relative group">
                 <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-neutral-500 transition-colors group-focus-within:text-indigo-500" size={16} />

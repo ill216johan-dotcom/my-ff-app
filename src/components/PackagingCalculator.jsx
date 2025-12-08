@@ -533,18 +533,18 @@ export default function PackagingCalculator() {
                     <div key={f}>
                       <label className={`block text-xs mb-1 ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>{LABELS[f]} (см)</label>
                       <input type="number" className={`w-full border rounded p-2 text-sm focus:border-blue-500 outline-none transition-all ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200' : 'bg-white border-gray-300'}`}
-                        value={inputs[f]} onChange={(e) => setInputs({...inputs, [f]: parseFloat(e.target.value) || 0})} />
+                        value={inputs[f]} onChange={(e) => setInputs({...inputs, [f]: e.target.value === '' ? 0 : (parseFloat(e.target.value) || 0)})} />
                     </div>
                   ))}
                   <div>
                     <label className={`block text-xs mb-1 ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>Вес (кг)</label>
                     <input type="number" step="0.01" className={`w-full border rounded p-2 text-sm focus:border-blue-500 outline-none ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200' : 'bg-white border-gray-300'}`}
-                        value={inputs.wgt} onChange={(e) => setInputs({...inputs, wgt: parseFloat(e.target.value) || 0})} />
+                        value={inputs.wgt} onChange={(e) => setInputs({...inputs, wgt: e.target.value === '' ? 0 : (parseFloat(e.target.value) || 0)})} />
                   </div>
                   <div>
                     <label className="block text-xs text-blue-500 font-bold mb-1">Кол-во</label>
                     <input type="number" min="1" className={`w-full border border-blue-400 rounded p-2 text-sm font-bold outline-none ${isDarkMode ? 'bg-blue-900/10 text-blue-100' : 'bg-blue-50 text-gray-800'}`}
-                        value={inputs.qty} onChange={(e) => setInputs({...inputs, qty: parseFloat(e.target.value) || 1})} />
+                        value={inputs.qty} onChange={(e) => setInputs({...inputs, qty: e.target.value === '' ? 1 : (parseFloat(e.target.value) || 1)})} />
                   </div>
               </div>
               <div className="mt-2 text-xs text-gray-400 flex gap-4">
@@ -602,7 +602,7 @@ export default function PackagingCalculator() {
                         min="0"
                         className={`w-20 border rounded p-1 text-sm text-right focus:border-blue-500 outline-none ${isDarkMode ? 'bg-black border-neutral-700 text-white' : 'bg-white border-gray-300'}`}
                         value={inputs.customCost} 
-                        onChange={(e) => setInputs({...inputs, customCost: parseFloat(e.target.value) || 0})}
+                        onChange={(e) => setInputs({...inputs, customCost: e.target.value === '' ? 0 : (parseFloat(e.target.value) || 0)})}
                     />
                     <span className="text-xs text-gray-400">руб</span>
                 </div>
