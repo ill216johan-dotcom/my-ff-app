@@ -11,14 +11,24 @@ const __dirname = path.dirname(__filename);
 // Настройки
 const FILE_PATH = path.join(__dirname, '../knowledge/full_dump.txt');
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
+// Пробуем сначала service_role ключ (для обхода RLS), потом anon ключ
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const KEY_TYPE = process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SERVICE_ROLE' : 'ANON';
 
 if (!supabaseUrl || !supabaseKey) {
-    console.error('❌ Ошибка: Не заданы SUPABASE_URL или SUPABASE_SERVICE_ROLE_KEY в .env');
+    console.error('❌ Ошибка: Не заданы VITE_SUPABASE_URL или один из ключей (SUPABASE_SERVICE_ROLE_KEY или VITE_SUPABASE_ANON_KEY) в .env');
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error('\n💡 СОВЕТ: Для обхода RLS используйте SUPABASE_SERVICE_ROLE_KEY');
+        console.error('   Найти его можно в Supabase Dashboard -> Settings -> API -> service_role key');
+    }
     process.exit(1);
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+console.log("🔍 Проверка подключения к Supabase...");
+console.log(`   URL: ${supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : '❌ НЕ НАЙДЕН'}`);
+console.log(`   KEY: ${supabaseKey ? supabaseKey.substring(0, 20) + '...' : '❌ НЕ НАЙДЕН'} (тип: ${KEY_TYPE})`);
 
 async function injectDescriptions() {
     console.log('🔄 Начинаем внедрение описаний...');

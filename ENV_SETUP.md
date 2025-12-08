@@ -1,44 +1,43 @@
-# 🔐 Environment Variables Setup
+# 🔐 Настройка переменных окружения
 
-## For Local Development (.env file)
+## Для локальной разработки (файл .env)
 
-Create a `.env` file in the project root with:
+Создайте файл `.env` в корне проекта со следующим содержимым:
 
 ```env
-# Client-side (exposed to browser via Vite)
+# Клиентская сторона (доступна браузеру через Vite)
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key-here
 
-# Server-side (Node.js only)
+# Серверная сторона (только Node.js)
 YANDEX_API_KEY=your-yandex-api-key-here
 YANDEX_FOLDER_ID=your-yandex-folder-id-here
 ```
 
-## For Vercel Production Deployment
+## Для развертывания в Production на Vercel
 
-Add these in Vercel Dashboard → Project Settings → Environment Variables:
+Добавьте эти переменные в Vercel Dashboard → Project Settings → Environment Variables:
 
-### Required Variables:
-1. **SUPABASE_URL** = `https://your-project-id.supabase.co` (without VITE_ prefix!)
-2. **SUPABASE_ANON_KEY** = `your-anon-key` (without VITE_ prefix!)
+### Обязательные переменные:
+1. **SUPABASE_URL** = `https://your-project-id.supabase.co` (без префикса VITE_!)
+2. **SUPABASE_ANON_KEY** = `your-anon-key` (без префикса VITE_!)
 3. **YANDEX_API_KEY** = `your-yandex-api-key`
 4. **YANDEX_FOLDER_ID** = `your-folder-id`
 
-### Important Notes:
-- ⚠️ **Vercel serverless functions** use variables **WITHOUT** the `VITE_` prefix
-- ⚠️ Client-side code uses `VITE_` prefixed variables (injected at build time)
-- ✅ The `api/chat.js` function is already configured for Vercel
-- ✅ The `server/server.js` is for local development only
+### Важные заметки:
+- ⚠️ **Vercel serverless функции** используют переменные **БЕЗ** префикса `VITE_`
+- ⚠️ Клиентский код использует переменные с префиксом `VITE_` (внедряются во время сборки)
+- ✅ Функция `api/chat.js` уже настроена для Vercel
+- ✅ `server/server.js` только для локальной разработки
 
-## Architecture
+## Архитектура
 
 ```
-Development:
-  ├── Client (Vite) → reads VITE_* from .env
-  └── server/server.js → reads VITE_* and YANDEX_* from .env
+Разработка:
+  ├── Клиент (Vite) → читает VITE_* из .env
+  └── server/server.js → читает VITE_* и YANDEX_* из .env
 
 Production (Vercel):
-  ├── Client (Built) → uses VITE_* from build time
-  └── api/chat.js → reads SUPABASE_*, YANDEX_* from Vercel env vars
+  ├── Клиент (Собранный) → использует VITE_* из времени сборки
+  └── api/chat.js → читает SUPABASE_*, YANDEX_* из переменных окружения Vercel
 ```
-

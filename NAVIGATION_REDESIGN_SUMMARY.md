@@ -1,112 +1,107 @@
-# Navigation Redesign - Compact Single-Row Top Bar
+# Редизайн навигации - Компактная верхняя панель в одну строку
 
-## Overview
-Redesigned the entire navigation system to use a clean, compact, single-row top navigation bar across all pages.
+## Обзор
+Полностью переработана система навигации для использования чистой, компактной верхней панели навигации в одну строку на всех страницах.
 
-## Changes Made
+## Внесенные изменения
 
-### 1. **CalculatorLayout.jsx** - Complete Redesign
+### 1. **CalculatorLayout.jsx** - Полный редизайн
 
-#### Before:
-- Two-row header (main header + sub-navigation)
-- Bulky design with multiple sections
-- Navigation tabs in a separate row
-- Links to calculators scattered
+#### До:
+- Двухрядный заголовок (основной заголовок + поднавигация)
+- Громоздкий дизайн с несколькими секциями
+- Вкладки навигации в отдельной строке
+- Ссылки на калькуляторы разбросаны
 
-#### After:
-- **Single-row header** (64px height)
-- Logo on the left
-- Navigation links immediately next to logo
-- User actions on the right (theme toggle, user profile, sign out)
-- Mobile-responsive with dropdown navigation
-- Clean, minimal design
+#### После:
+- **Заголовок в одну строку** (высота 64px)
+- Логотип слева
+- Ссылки навигации сразу после логотипа
+- Действия пользователя справа (переключатель темы, профиль пользователя, выход)
+- Адаптивность для мобильных устройств с выпадающей навигацией
+- Чистый, минималистичный дизайн
 
-**Navigation Items:**
-- Knowledge Base
-- FBO Calculator
-- Ozon Calculator
-- Packaging
-- Exchange
+**Элементы навигации:**
+- База знаний
+- Калькулятор FBO
+- Калькулятор Ozon
+- Упаковка
+- Биржа
 
-### 2. **HelpCenter.jsx** - Added Top Navigation
+### 2. **HelpCenter.jsx** - Добавлена верхняя навигация
 
-#### Before:
-- No global navigation
-- Only mobile menu button
-- Tools links buried in sidebar
+#### До:
+- Нет глобальной навигации
+- Только кнопка мобильного меню
+- Ссылки на инструменты зарыты в боковой панели
 
-#### After:
-- **Same compact top navigation** as CalculatorLayout
-- Consistent across all pages
-- Sidebar kept for article navigation (this is specific to Help Center)
-- Mobile overlay for sidebar
+#### После:
+- **Та же компактная верхняя навигация**, что и в CalculatorLayout
+- Единообразие на всех страницах
+- Боковая панель сохранена для навигации по статьям (это специфично для Центра помощи)
+- Мобильное наложение для боковой панели
 
-### 3. **Layout Structure**
+### 3. **Структура макета**
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Logo  │  Nav Links...        Theme  User  Sign Out │
+│  Логотип  │  Ссылки навигации...        Тема  Пользователь  Выход │
 └─────────────────────────────────────────────────────────┘
                         ↓
-              (Mobile: Second row)
+              (Мобильное: Вторая строка)
        ┌─────────────────────────────────┐
-       │  Nav Links... (horizontal scroll) │
+       │  Ссылки навигации... (горизонтальная прокрутка) │
        └─────────────────────────────────┘
 ```
 
-### 4. **Design Principles**
+### 4. **Принципы дизайна**
 
-✅ **Minimal** - Single row, no unnecessary elements
-✅ **Consistent** - Same navigation on all pages
-✅ **Professional** - Clean typography and spacing
-✅ **Responsive** - Mobile-friendly with smart fallbacks
-✅ **Accessible** - Clear hover states and active indicators
+✅ **Минимализм** - Одна строка, без лишних элементов
+✅ **Единообразие** - Та же навигация на всех страницах
+✅ **Профессионализм** - Чистая типографика и отступы
+✅ **Адаптивность** - Удобство для мобильных устройств с умными запасными вариантами
+✅ **Доступность** - Четкие состояния при наведении и индикаторы активности
 
-### 5. **Styling Details**
+### 5. **Детали стилизации**
 
-- **Active Link**: Indigo background with colored text
-- **Inactive Link**: Gray text with hover state
-- **Spacing**: `gap-1` between nav items, `gap-8` between sections
-- **Height**: Fixed 64px (16 = 4rem = h-16)
-- **Typography**: `text-sm font-medium`
-- **Colors**: Indigo accent for active states
+- **Активная ссылка**: Индиго фон с цветным текстом
+- **Неактивная ссылка**: Серый текст с состоянием при наведении
+- **Отступы**: `gap-1` между элементами навигации, `gap-8` между секциями
+- **Высота**: Фиксированная 64px (16 = 4rem = h-16)
+- **Типографика**: `text-sm font-medium`
+- **Цвета**: Индиго акцент для активных состояний
 
-### 6. **Files Modified**
+### 6. **Измененные файлы**
 
-1. `src/components/CalculatorLayout.jsx` - Complete redesign
-2. `src/components/HelpCenter.jsx` - Added top navigation
-3. `src/layouts/MainLayout.jsx` - **DELETED** (no longer needed)
+1. `src/components/CalculatorLayout.jsx` - Полный редизайн
+2. `src/components/HelpCenter.jsx` - Добавлена верхняя навигация
+3. `src/layouts/MainLayout.jsx` - **УДАЛЕН** (больше не нужен)
 
-### 7. **Mobile Responsiveness**
+### 7. **Адаптивность для мобильных устройств**
 
-**Desktop (md+):**
-- Single row with all navigation visible
-- Logo + Nav Links | User Actions
+**Десктоп (md+):**
+- Одна строка со всей видимой навигацией
+- Логотип + Ссылки навигации | Действия пользователя
 
-**Mobile (<md):**
-- Logo + Menu Button | User Actions (first row)
-- Horizontal scrollable navigation links (second row)
-- Sidebar overlays with backdrop
+**Мобильное (<md):**
+- Логотип + Кнопка меню | Действия пользователя (первая строка)
+- Горизонтально прокручиваемые ссылки навигации (вторая строка)
+- Боковая панель с наложением и фоном
 
-## Result
+## Результат
 
-All pages now have:
-- ✅ Unified navigation experience
-- ✅ Easy access to all tools from any page
-- ✅ Clean, professional appearance
-- ✅ Consistent branding across the application
-- ✅ Better mobile experience
+Все страницы теперь имеют:
+- ✅ Единый опыт навигации
+- ✅ Легкий доступ ко всем инструментам с любой страницы
+- ✅ Чистый, профессиональный внешний вид
+- ✅ Единообразный брендинг во всем приложении
+- ✅ Лучший опыт для мобильных устройств
 
-Users can now seamlessly navigate between:
-- Knowledge Base (HelpCenter)
-- FBO Calculator
-- Ozon Calculator
-- Packaging Calculator
-- Exchange
+Пользователи теперь могут легко переключаться между:
+- База знаний (HelpCenter)
+- Калькулятор FBO
+- Калькулятор Ozon
+- Калькулятор упаковки
+- Биржа
 
-From any page with a single click!
-
-
-
-
-
+С любой страницы одним кликом!

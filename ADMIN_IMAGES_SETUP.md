@@ -1,42 +1,42 @@
-# Admin Images Interface - Setup Complete ✅
+# Интерфейс управления изображениями администратора - Настройка завершена ✅
 
-## What Was Done
+## Что было сделано
 
-The Admin Images Interface for managing AI image descriptions has been successfully integrated into your application.
+Интерфейс управления изображениями администратора для управления описаниями изображений AI был успешно интегрирован в ваше приложение.
 
-### 1. **Component Implementation** ✅
-- `src/pages/AdminImages.jsx` - Fully implemented with all requested features:
-  - ✅ Admin-only access control (checks `user.role === 'admin'`)
-  - ✅ Loads and parses `knowledgebase.json` from `/public`
-  - ✅ Extracts ALL image URLs from content (both `<img>` tags and markdown `![](url)`)
-  - ✅ Deduplicates image URLs
-  - ✅ Fetches existing descriptions from Supabase `image_captions` table
-  - ✅ Beautiful grid layout with Tailwind CSS
-  - ✅ Image thumbnails with error handling
-  - ✅ Textarea for AI descriptions
-  - ✅ Save button with loading states
-  - ✅ Upsert functionality (creates or updates records)
-  - ✅ Toast notifications for save confirmation
-  - ✅ Statistics dashboard (Total/Saved/Remaining)
+### 1. **Реализация компонента** ✅
+- `src/pages/AdminImages.jsx` - Полностью реализован со всеми запрошенными функциями:
+  - ✅ Контроль доступа только для администраторов (проверяет `user.role === 'admin'`)
+  - ✅ Загружает и парсит `knowledgebase.json` из `/public`
+  - ✅ Извлекает ВСЕ URL изображений из содержимого (как теги `<img>`, так и markdown `![](url)`)
+  - ✅ Дедуплицирует URL изображений
+  - ✅ Получает существующие описания из таблицы Supabase `image_captions`
+  - ✅ Красивый макет сетки с Tailwind CSS
+  - ✅ Миниатюры изображений с обработкой ошибок
+  - ✅ Текстовое поле для описаний AI
+  - ✅ Кнопка сохранения с состояниями загрузки
+  - ✅ Функциональность upsert (создает или обновляет записи)
+  - ✅ Уведомления toast для подтверждения сохранения
+  - ✅ Дашборд статистики (Всего/Сохранено/Осталось)
 
-### 2. **Routing** ✅
-- Added route in `src/App.jsx`:
+### 2. **Маршрутизация** ✅
+- Добавлен маршрут в `src/App.jsx`:
   ```jsx
   <Route path="/admin/images" element={<AdminImages />} />
   ```
 
-### 3. **Navigation** ✅
-- Added admin navigation link in `src/components/CalculatorLayout.jsx`
-- **Visibility**: Only visible to users with `role === 'admin'`
-- **Label**: 🖼️ Управление изображениями
-- **Path**: `/admin/images`
+### 3. **Навигация** ✅
+- Добавлена ссылка навигации администратора в `src/components/CalculatorLayout.jsx`
+- **Видимость**: Видна только пользователям с `role === 'admin'`
+- **Метка**: 🖼️ Управление изображениями
+- **Путь**: `/admin/images`
 
-### 4. **Styling** ✅
-- Added custom `animate-slide-up` animation in `tailwind.config.js` for toast notifications
+### 4. **Стилизация** ✅
+- Добавлена пользовательская анимация `animate-slide-up` в `tailwind.config.js` для уведомлений toast
 
-### 5. **Database** ✅
-- Migration script available: `image_captions_migration.sql`
-- Table structure:
+### 5. **База данных** ✅
+- Доступен скрипт миграции: `image_captions_migration.sql`
+- Структура таблицы:
   ```sql
   CREATE TABLE image_captions (
     id UUID PRIMARY KEY,
@@ -47,125 +47,123 @@ The Admin Images Interface for managing AI image descriptions has been successfu
   );
   ```
 
-## How to Use
+## Как использовать
 
-### For First-Time Setup:
+### Для первоначальной настройки:
 
-1. **Run Database Migration** (if not done yet):
-   - Open Supabase Dashboard → SQL Editor
-   - Copy and paste contents of `image_captions_migration.sql`
-   - Execute the script
-   - This creates the `image_captions` table with proper RLS policies
+1. **Выполните миграцию базы данных** (если еще не сделано):
+   - Откройте Supabase Dashboard → SQL Editor
+   - Скопируйте и вставьте содержимое `image_captions_migration.sql`
+   - Выполните скрипт
+   - Это создаст таблицу `image_captions` с правильными политиками RLS
 
-2. **Ensure Admin Role**:
-   - Make sure your user has `role = 'admin'` in the `profiles` table
-   - You can set this in Supabase Table Editor or via SQL:
+2. **Убедитесь в роли администратора**:
+   - Убедитесь, что у вашего пользователя `role = 'admin'` в таблице `profiles`
+   - Вы можете установить это в Supabase Table Editor или через SQL:
      ```sql
      UPDATE profiles SET role = 'admin' WHERE id = 'your-user-id';
      ```
 
-### For Daily Use:
+### Для ежедневного использования:
 
-1. **Access the Interface**:
-   - Sign in as an admin user
-   - Click **🖼️ Управление изображениями** in the top navigation
-   - Or navigate directly to: `http://localhost:5173/admin/images`
+1. **Доступ к интерфейсу**:
+   - Войдите как пользователь-администратор
+   - Нажмите **🖼️ Управление изображениями** в верхней навигации
+   - Или перейдите напрямую по адресу: `http://localhost:5173/admin/images`
 
-2. **Add Image Descriptions**:
-   - The interface will automatically load all images from your knowledge base
-   - For each image:
-     - View the thumbnail
-     - Enter a descriptive caption in the textarea (e.g., "Screenshot of the FBO tariff table showing pricing tiers")
-     - Click **Save**
-   - Descriptions are saved to Supabase and can be used by the AI chat
+2. **Добавление описаний изображений**:
+   - Интерфейс автоматически загрузит все изображения из вашей базы знаний
+   - Для каждого изображения:
+     - Просмотрите миниатюру
+     - Введите описательную подпись в текстовое поле (например, "Скриншот таблицы тарифов FBO, показывающий ценовые уровни")
+     - Нажмите **Save**
+   - Описания сохраняются в Supabase и могут использоваться AI чатом
 
-3. **Statistics**:
-   - View progress at the top of the page
-   - See how many images have descriptions vs. remaining
+3. **Статистика**:
+   - Просмотрите прогресс вверху страницы
+   - Увидите, сколько изображений имеют описания vs. осталось
 
-## Features
+## Функции
 
-### Access Control ✨
-- Automatically redirects non-admin users to `/auth`
-- Only users with `profile.role === 'admin'` can access
+### Контроль доступа ✨
+- Автоматически перенаправляет пользователей, не являющихся администраторами, на `/auth`
+- Только пользователи с `profile.role === 'admin'` могут получить доступ
 
-### Smart Image Extraction 🔍
-- Scans entire `knowledgebase.json`
-- Extracts from both HTML `<img>` tags and Markdown `![](url)` syntax
-- Deduplicates URLs automatically
-- Handles both absolute and relative URLs
+### Умное извлечение изображений 🔍
+- Сканирует весь `knowledgebase.json`
+- Извлекает как из HTML тегов `<img>`, так и из синтаксиса Markdown `![](url)`
+- Автоматически дедуплицирует URL
+- Обрабатывает как абсолютные, так и относительные URL
 
-### User-Friendly Interface 🎨
-- **Grid Layout**: 3-column responsive grid
-- **Image Preview**: Shows thumbnails with error handling
-- **Live Status**: Button changes from "Save" → "Saving..." → "Saved!"
-- **Modified Detection**: Save button only active when description is changed
-- **Toast Notifications**: Success/error messages appear in bottom-right corner
+### Удобный интерфейс 🎨
+- **Макет сетки**: Адаптивная сетка из 3 столбцов
+- **Предпросмотр изображений**: Показывает миниатюры с обработкой ошибок
+- **Статус в реальном времени**: Кнопка меняется с "Save" → "Saving..." → "Saved!"
+- **Обнаружение изменений**: Кнопка сохранения активна только при изменении описания
+- **Уведомления Toast**: Сообщения об успехе/ошибке появляются в правом нижнем углу
 
-### Database Integration 💾
-- **Upsert Logic**: Creates new records or updates existing ones
-- **No Duplicates**: Uses `url` as unique constraint
-- **Timestamps**: Automatically tracks `created_at` and `updated_at`
+### Интеграция с базой данных 💾
+- **Логика Upsert**: Создает новые записи или обновляет существующие
+- **Без дубликатов**: Использует `url` как уникальное ограничение
+- **Временные метки**: Автоматически отслеживает `created_at` и `updated_at`
 
-## File Structure
+## Структура файлов
 
 ```
 my-react-app/
 ├── src/
 │   ├── pages/
-│   │   └── AdminImages.jsx          ← Main component
+│   │   └── AdminImages.jsx          ← Основной компонент
 │   ├── components/
-│   │   └── CalculatorLayout.jsx     ← Navigation updated
-│   └── App.jsx                      ← Route added
+│   │   └── CalculatorLayout.jsx     ← Навигация обновлена
+│   └── App.jsx                      ← Маршрут добавлен
 ├── public/
-│   └── knowledgebase.json           ← Data source
-├── image_captions_migration.sql     ← DB migration
-└── tailwind.config.js               ← Animation added
+│   └── knowledgebase.json           ← Источник данных
+├── image_captions_migration.sql     ← Миграция БД
+└── tailwind.config.js               ← Анимация добавлена
 ```
 
-## API Usage (for AI Chat Integration)
+## Использование API (для интеграции с AI чатом)
 
-To use image descriptions in your AI chat, fetch from Supabase:
+Чтобы использовать описания изображений в вашем AI чате, получите их из Supabase:
 
 ```javascript
 const { data: imageCaptions } = await supabase
   .from('image_captions')
   .select('url, description');
 
-// Creates a map: { url → description }
+// Создает карту: { url → description }
 const captionsMap = {};
 imageCaptions.forEach(cap => {
   captionsMap[cap.url] = cap.description;
 });
 ```
 
-## Troubleshooting
+## Устранение неполадок
 
-### Images not loading?
-- Check that images exist in `knowledgebase.json`
-- Verify image URLs are valid and accessible
-- Check browser console for errors
+### Изображения не загружаются?
+- Проверьте, что изображения существуют в `knowledgebase.json`
+- Убедитесь, что URL изображений валидны и доступны
+- Проверьте консоль браузера на наличие ошибок
 
-### Can't save descriptions?
-- Ensure database migration was run successfully
-- Check that user has `role = 'admin'` in profiles table
-- Verify Supabase RLS policies are active
+### Не можете сохранить описания?
+- Убедитесь, что миграция базы данных была выполнена успешно
+- Проверьте, что у пользователя `role = 'admin'` в таблице profiles
+- Убедитесь, что политики RLS Supabase активны
 
-### Navigation link not showing?
-- Confirm you're logged in
-- Verify your profile has `role = 'admin'`
-- Check browser console for authentication errors
+### Ссылка навигации не отображается?
+- Подтвердите, что вы вошли в систему
+- Убедитесь, что ваш профиль имеет `role = 'admin'`
+- Проверьте консоль браузера на ошибки аутентификации
 
-## Next Steps
+## Следующие шаги
 
-1. ✅ **Migration**: Run `image_captions_migration.sql` in Supabase (if not done)
-2. ✅ **Test Access**: Login as admin and visit `/admin/images`
-3. 📝 **Add Descriptions**: Start adding AI-friendly descriptions to your images
-4. 🤖 **Integrate with AI**: Update AI chat to fetch and use these descriptions
+1. ✅ **Миграция**: Выполните `image_captions_migration.sql` в Supabase (если еще не сделано)
+2. ✅ **Тест доступа**: Войдите как администратор и посетите `/admin/images`
+3. 📝 **Добавление описаний**: Начните добавлять описания, удобные для AI, к вашим изображениям
+4. 🤖 **Интеграция с AI**: Обновите AI чат для получения и использования этих описаний
 
 ---
 
-**Status**: ✅ Ready to use!
-**Last Updated**: Dec 3, 2025
-
-
+**Статус**: ✅ Готово к использованию!
+**Последнее обновление**: 3 декабря 2025

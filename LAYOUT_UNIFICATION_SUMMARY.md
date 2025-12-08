@@ -1,50 +1,45 @@
-# Layout Unification - Summary
+# Унификация макета - Сводка
 
-## Issue
-The `pages/Exchange.jsx` page was missing the application header and navigation, making it impossible for users to navigate back to other tools/calculators.
+## Проблема
+На странице `pages/Exchange.jsx` отсутствовал заголовок приложения и навигация, что делало невозможным для пользователей вернуться к другим инструментам/калькуляторам.
 
-## Solution
-Wrapped the Exchange page content with `CalculatorLayout` to match the calculator pages.
+## Решение
+Обернули содержимое страницы Exchange в `CalculatorLayout`, чтобы соответствовать страницам калькуляторов.
 
-## Changes Made
+## Внесенные изменения
 
 ### 1. `src/pages/Exchange.jsx`
-- **Added import**: `import CalculatorLayout from '../components/CalculatorLayout';`
-- **Wrapped content**: All page content now wrapped in `<CalculatorLayout title="Packaging Exchange">`
-- **Removed**: Custom header that was previously at the top of the page
-- **Removed**: Unused `handleSignOut` function (now handled by CalculatorLayout)
+- **Добавлен импорт**: `import CalculatorLayout from '../components/CalculatorLayout';`
+- **Обернуто содержимое**: Все содержимое страницы теперь обернуто в `<CalculatorLayout title="Packaging Exchange">`
+- **Удалено**: Пользовательский заголовок, который был ранее вверху страницы
+- **Удалено**: Неиспользуемая функция `handleSignOut` (теперь обрабатывается CalculatorLayout)
 
-### 2. Benefits
-The Exchange page now has:
-- ✅ **Consistent header** with logo, theme toggle, and user authentication
-- ✅ **Navigation tabs** for switching between:
-  - Wildberries FBO Calculator
-  - Ozon FBO Calculator
-  - Packaging Calculator
-  - **Exchange** (current page)
-- ✅ **"Back to Help Center" link** in the header
-- ✅ **Dark mode support** matching other pages
-- ✅ **Responsive design** matching the calculator pages
+### 2. Преимущества
+Страница Exchange теперь имеет:
+- ✅ **Единообразный заголовок** с логотипом, переключателем темы и аутентификацией пользователя
+- ✅ **Вкладки навигации** для переключения между:
+  - Калькулятор FBO Wildberries
+  - Калькулятор FBO Ozon
+  - Калькулятор упаковки
+  - **Биржа** (текущая страница)
+- ✅ **Ссылка "Назад в Центр помощи"** в заголовке
+- ✅ **Поддержка темного режима**, соответствующая другим страницам
+- ✅ **Адаптивный дизайн**, соответствующий страницам калькуляторов
 
-## Navigation Flow
-Users can now:
-1. Start at the Help Center (Home page)
-2. Navigate to any calculator or Exchange
-3. Switch between calculators and Exchange using the horizontal tabs
-4. Return to Help Center using the "Back to Help Center" link
-5. Access authentication features from any page
+## Поток навигации
+Пользователи теперь могут:
+1. Начать с Центра помощи (Главная страница)
+2. Перейти к любому калькулятору или Бирже
+3. Переключаться между калькуляторами и Биржей, используя горизонтальные вкладки
+4. Вернуться в Центр помощи, используя ссылку "Назад в Центр помощи"
+5. Получить доступ к функциям аутентификации с любой страницы
 
-## Technical Details
-The `CalculatorLayout` component provides:
-- Sticky header with logo and user controls
-- Sub-header with horizontal navigation tabs
-- Consistent spacing and styling
-- Dark mode theme synchronization
-- Supabase authentication integration
+## Технические детали
+Компонент `CalculatorLayout` предоставляет:
+- Липкий заголовок с логотипом и элементами управления пользователя
+- Подзаголовок с горизонтальными вкладками навигации
+- Единообразные отступы и стилизация
+- Синхронизация темы темного режима
+- Интеграция аутентификации Supabase
 
-All pages in the tools/calculator section now share the same layout and navigation structure.
-
-
-
-
-
+Все страницы в разделе инструментов/калькуляторов теперь используют один и тот же макет и структуру навигации.

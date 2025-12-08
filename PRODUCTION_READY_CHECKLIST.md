@@ -1,70 +1,70 @@
-# ✅ Production Deployment Checklist
+# ✅ Чеклист развертывания в Production
 
-## Pre-Deployment Verification
+## Проверка перед развертыванием
 
-### 1. Code Quality & Security ✅
-- [x] No hardcoded API keys or secrets in codebase
-- [x] All sensitive data uses environment variables
-- [x] No linter errors
-- [x] All imports are correct
-- [x] Unused files removed (duplicate supabaseClient.js)
+### 1. Качество кода и безопасность ✅
+- [x] Нет захардкоженных API ключей или секретов в кодовой базе
+- [x] Все чувствительные данные используют переменные окружения
+- [x] Нет ошибок линтера
+- [x] Все импорты корректны
+- [x] Удалены неиспользуемые файлы (дубликат supabaseClient.js)
 
-### 2. Environment Variables ✅
-- [x] Client-side variables use `VITE_` prefix
-- [x] Server-side variables documented in ENV_SETUP.md
-- [x] api/chat.js uses correct variable names (without VITE_)
-- [x] server/server.js uses correct variable names (with VITE_)
+### 2. Переменные окружения ✅
+- [x] Клиентские переменные используют префикс `VITE_`
+- [x] Серверные переменные задокументированы в ENV_SETUP.md
+- [x] api/chat.js использует правильные имена переменных (без VITE_)
+- [x] server/server.js использует правильные имена переменных (с VITE_)
 
-### 3. Error Handling ✅
-- [x] Comprehensive try-catch blocks in api/chat.js
-- [x] Specific error messages for different failure types
-- [x] Input validation (message length, type checking)
-- [x] Graceful degradation on API failures
+### 3. Обработка ошибок ✅
+- [x] Комплексные блоки try-catch в api/chat.js
+- [x] Специфичные сообщения об ошибках для разных типов сбоев
+- [x] Валидация входных данных (длина сообщения, проверка типов)
+- [x] Корректная деградация при сбоях API
 
-### 4. Performance Optimizations ✅
-- [x] Timeout protection on all external API calls (15-30s)
-- [x] Supabase client initialized once at module level
-- [x] RAG parameters optimized (match_threshold: 0.25, match_count: 5)
-- [x] YandexGPT temperature set to 0.3 (factual responses)
+### 4. Оптимизация производительности ✅
+- [x] Защита от таймаутов на всех внешних вызовах API (15-30с)
+- [x] Клиент Supabase инициализирован один раз на уровне модуля
+- [x] Параметры RAG оптимизированы (match_threshold: 0.25, match_count: 5)
+- [x] Температура YandexGPT установлена на 0.3 (фактические ответы)
 
-### 5. API Configuration ✅
-- [x] CORS headers properly configured
-- [x] API_URL logic in AiChatWidget.jsx correct:
+### 5. Конфигурация API ✅
+- [x] Заголовки CORS правильно настроены
+- [x] Логика API_URL в AiChatWidget.jsx корректна:
   - Production: `/api/chat` (Vercel serverless)
-  - Development: `http://localhost:3001/api/chat` (local server)
+  - Development: `http://localhost:3001/api/chat` (локальный сервер)
 
-## Critical Fixes Applied
+## Критические исправления
 
-### 🔧 Fixed Issues:
+### 🔧 Исправленные проблемы:
 
-1. **api/chat.js** - Environment Variables
-   - ❌ Was: `process.env.VITE_SUPABASE_URL`
-   - ✅ Now: `process.env.SUPABASE_URL`
-   - **Impact**: Serverless function will now correctly read Vercel env vars
+1. **api/chat.js** - Переменные окружения
+   - ❌ Было: `process.env.VITE_SUPABASE_URL`
+   - ✅ Теперь: `process.env.SUPABASE_URL`
+   - **Влияние**: Serverless функция теперь правильно читает переменные окружения Vercel
 
-2. **scripts/fill-db-smart.js** - Undefined Variable
-   - ❌ Was: `${FOLDER_ID}`
-   - ✅ Now: `${YANDEX_FOLDER_ID}`
-   - **Impact**: Database population script will no longer crash
+2. **scripts/fill-db-smart.js** - Неопределенная переменная
+   - ❌ Было: `${FOLDER_ID}`
+   - ✅ Теперь: `${YANDEX_FOLDER_ID}`
+   - **Влияние**: Скрипт заполнения базы данных больше не будет падать
 
-3. **Error Handling** - Added comprehensive validation
-   - Message length validation (max 2000 chars)
-   - Type checking for message input
-   - Specific error codes (400, 503, 500)
-   - Timeout protection on all API calls
+3. **Обработка ошибок** - Добавлена комплексная валидация
+   - Валидация длины сообщения (макс. 2000 символов)
+   - Проверка типов для входных данных сообщения
+   - Специфичные коды ошибок (400, 503, 500)
+   - Защита от таймаутов на всех вызовах API
 
-4. **Performance** - Added timeouts
-   - Embedding API: 15 seconds
-   - Generation API: 30 seconds
-   - Database fill script: 20 seconds
+4. **Производительность** - Добавлены таймауты
+   - Embedding API: 15 секунд
+   - Generation API: 30 секунд
+   - Скрипт заполнения БД: 20 секунд
 
-## Vercel Deployment Steps
+## Шаги развертывания на Vercel
 
-### 1. Set Environment Variables in Vercel Dashboard
+### 1. Установите переменные окружения в панели управления Vercel
 
-Go to: Project Settings → Environment Variables
+Перейдите: Project Settings → Environment Variables
 
-Add these **4 variables** (for Production, Preview, Development):
+Добавьте эти **4 переменные** (для Production, Preview, Development):
 
 ```
 SUPABASE_URL = https://your-project-id.supabase.co
@@ -73,11 +73,11 @@ YANDEX_API_KEY = your-yandex-api-key
 YANDEX_FOLDER_ID = your-folder-id
 ```
 
-⚠️ **IMPORTANT**: Do NOT use `VITE_` prefix in Vercel dashboard!
+⚠️ **ВАЖНО**: НЕ используйте префикс `VITE_` в панели управления Vercel!
 
-### 2. Verify vercel.json Configuration
+### 2. Проверьте конфигурацию vercel.json
 
-Your `vercel.json` should handle SPA routing:
+Ваш `vercel.json` должен обрабатывать маршрутизацию SPA:
 
 ```json
 {
@@ -90,7 +90,7 @@ Your `vercel.json` should handle SPA routing:
 }
 ```
 
-### 3. Deploy
+### 3. Развертывание
 
 ```bash
 git add .
@@ -98,95 +98,94 @@ git commit -m "Production optimizations and security fixes"
 git push origin main
 ```
 
-Vercel will automatically deploy.
+Vercel автоматически развернет.
 
-### 4. Test Production API
+### 4. Протестируйте Production API
 
-After deployment, test the chat:
-1. Open your Vercel URL
-2. Click the AI chat widget
-3. Send a test message
-4. Verify response comes back
+После развертывания протестируйте чат:
+1. Откройте ваш URL Vercel
+2. Нажмите на виджет AI чата
+3. Отправьте тестовое сообщение
+4. Проверьте, что ответ пришел
 
-## Local Development Testing
+## Локальное тестирование разработки
 
-Before pushing to production, test locally:
+Перед отправкой в production протестируйте локально:
 
-### 1. Start Local Server
+### 1. Запустите локальный сервер
 ```bash
 node server/server.js
 ```
 
-### 2. Start Vite Dev Server (in another terminal)
+### 2. Запустите Vite Dev Server (в другом терминале)
 ```bash
 npm run dev
 ```
 
-### 3. Test Chat Widget
-- Open http://localhost:5173
-- Test AI chat functionality
-- Check browser console for errors
+### 3. Протестируйте виджет чата
+- Откройте http://localhost:5173
+- Протестируйте функциональность AI чата
+- Проверьте консоль браузера на наличие ошибок
 
-## Performance Benchmarks
+## Бенчмарки производительности
 
-Expected response times:
-- Embedding generation: 1-3 seconds
-- Supabase vector search: 0.5-1 second
-- YandexGPT generation: 3-8 seconds
-- **Total**: 5-12 seconds per query
+Ожидаемое время отклика:
+- Генерация эмбеддингов: 1-3 секунды
+- Поиск векторов Supabase: 0.5-1 секунда
+- Генерация YandexGPT: 3-8 секунд
+- **Итого**: 5-12 секунд на запрос
 
-## Monitoring & Debugging
+## Мониторинг и отладка
 
-### Production Logs (Vercel)
-1. Go to Vercel Dashboard → Your Project → Functions
-2. Click on `/api/chat`
-3. View real-time logs
+### Логи Production (Vercel)
+1. Перейдите в Vercel Dashboard → Your Project → Functions
+2. Нажмите на `/api/chat`
+3. Просмотрите логи в реальном времени
 
-### Local Logs
-Server logs include:
-- 📥 Incoming questions
-- ✅ Found fragments count
-- 🔍 Similarity scores
-- 🤖 Response status
+### Локальные логи
+Логи сервера включают:
+- 📥 Входящие вопросы
+- ✅ Количество найденных фрагментов
+- 🔍 Оценки схожести
+- 🤖 Статус ответа
 
-## Security Notes
+## Заметки о безопасности
 
-✅ **Safe for Git**:
-- All API keys use environment variables
-- No hardcoded secrets
-- .env file is gitignored
+✅ **Безопасно для Git**:
+- Все API ключи используют переменные окружения
+- Нет захардкоженных секретов
+- Файл .env в gitignore
 
-✅ **API Security**:
-- CORS properly configured
-- Method validation (POST only)
-- Input sanitization
-- Rate limiting (handled by Vercel/Yandex)
+✅ **Безопасность API**:
+- CORS правильно настроен
+- Валидация метода (только POST)
+- Санитизация входных данных
+- Ограничение скорости (обрабатывается Vercel/Yandex)
 
-## Post-Deployment Verification
+## Проверка после развертывания
 
-After deployment, verify:
-- [ ] Chat widget appears on site
-- [ ] Messages send successfully
-- [ ] AI responses are relevant (RAG working)
-- [ ] No errors in Vercel function logs
-- [ ] Response times are acceptable (<15s)
+После развертывания проверьте:
+- [ ] Виджет чата появляется на сайте
+- [ ] Сообщения отправляются успешно
+- [ ] Ответы AI релевантны (RAG работает)
+- [ ] Нет ошибок в логах функций Vercel
+- [ ] Время отклика приемлемо (<15с)
 
-## Rollback Plan
+## План отката
 
-If issues occur:
-1. Check Vercel function logs
-2. Verify environment variables are set
-3. Revert to previous deployment in Vercel dashboard
-4. Check Supabase database connection
+Если возникнут проблемы:
+1. Проверьте логи функций Vercel
+2. Убедитесь, что переменные окружения установлены
+3. Откатитесь к предыдущему развертыванию в панели управления Vercel
+4. Проверьте подключение к базе данных Supabase
 
-## Support Contacts
+## Контакты поддержки
 
-- Yandex Cloud API Status: https://status.cloud.yandex.ru/
-- Supabase Status: https://status.supabase.com/
-- Vercel Status: https://www.vercel-status.com/
+- Статус Yandex Cloud API: https://status.cloud.yandex.ru/
+- Статус Supabase: https://status.supabase.com/
+- Статус Vercel: https://www.vercel-status.com/
 
 ---
 
-**Last Updated**: December 2025
-**Status**: ✅ Ready for Production
-
+**Последнее обновление**: Декабрь 2025
+**Статус**: ✅ Готово к Production

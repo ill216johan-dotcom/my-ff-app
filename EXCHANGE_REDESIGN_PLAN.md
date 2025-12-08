@@ -1,41 +1,36 @@
-# Exchange.jsx Redesign Plan
+# План редизайна Exchange.jsx
 
-## Current Issues
-- Table list looks empty with few orders (1-2)
-- Chat functionality buried
-- Items table takes too much space (15+ columns)
-- Not workflow-focused
+## Текущие проблемы
+- Список таблиц выглядит пустым с несколькими заказами (1-2)
+- Функциональность чата зарыта
+- Таблица товаров занимает слишком много места (15+ столбцов)
+- Не ориентирован на рабочий процесс
 
-## New Design: "Dashboard Cards → Order Focus View"
+## Новый дизайн: "Карточки дашборда → Фокус на заказе"
 
-### View 1: Dashboard (Default)
-**Grid of Cards**
-- "Create New Order" card (dashed border, prominent)
-- Order cards with:
-  - Title + Status badge
-  - Brief stats (items count, budget, deadline)
-  - Action button ("Open Order" / "View Bids")
+### Вид 1: Дашборд (По умолчанию)
+**Сетка карточек**
+- Карточка "Создать новый заказ" (пунктирная рамка, выделена)
+- Карточки заказов с:
+  - Название + Значок статуса
+  - Краткая статистика (количество товаров, бюджет, дедлайн)
+  - Кнопка действия ("Открыть заказ" / "Просмотреть предложения")
 
-### View 2: Order Focus View
-**When clicking a card:**
-- Breadcrumb "< Back to Dashboard"
-- Order header with title, status, arbitration button
-- **Chat Component** - prominent, always visible
-- **Items Table** - collapsed by default, opens in modal
-- **Bids Section** - for orders in 'searching' status
+### Вид 2: Фокус на заказе
+**При клике на карточку:**
+- Хлебные крошки "< Назад к дашборду"
+- Заголовок заказа с названием, статусом, кнопкой арбитража
+- **Компонент чата** - выделен, всегда виден
+- **Таблица товаров** - свернута по умолчанию, открывается в модальном окне
+- **Секция предложений** - для заказов в статусе 'searching'
 
-### Components to Create
-1. `OrderCard` - Card component for dashboard
-2. `CreateOrderCard` - Special card for new orders
-3. `OrderFocusView` - Detail view with chat
-4. `ItemsTableModal` - Modal for wide items table
+### Компоненты для создания
+1. `OrderCard` - Компонент карточки для дашборда
+2. `CreateOrderCard` - Специальная карточка для новых заказов
+3. `OrderFocusView` - Детальный вид с чатом
+4. `ItemsTableModal` - Модальное окно для широкой таблицы товаров
 
-### State Management
-- `focusedOrder` - Currently selected order (null = dashboard)
-- `showItemsModal` - Toggle items table modal
-- Keep existing states for chat, bids, etc.
-
-
-
-
-
+### Управление состоянием
+- `focusedOrder` - Выбранный в данный момент заказ (null = дашборд)
+- `showItemsModal` - Переключение модального окна таблицы товаров
+- Сохранить существующие состояния для чата, предложений и т.д.
