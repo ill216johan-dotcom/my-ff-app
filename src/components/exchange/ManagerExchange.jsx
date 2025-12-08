@@ -52,10 +52,25 @@ function ManagerExchange({ user, profile }) {
 
   const fetchAllOrders = async () => {
     try {
-      // First, get all orders with the required statuses
+      // Optimized: Single query with JOINs for profiles and bids
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          client:profiles!orders_client_id_fkey (
+            id,
+            full_name
+          ),
+          executor:profiles!orders_accepted_packer_id_fkey (
+            id,
+            full_name
+          ),
+          bids:bids!bids_order_id_fkey (
+            order_id,
+            price,
+            status
+          )
+        `)
         .in('status', ['searching', 'open', 'booked', 'in_progress', 'awaiting_payment'])
         .order('created_at', { ascending: false });
 
@@ -71,54 +86,23 @@ function ManagerExchange({ user, profile }) {
         return;
       }
 
-      // Get unique client and executor IDs
-      const clientIds = [...new Set(ordersData.map(o => o.client_id).filter(Boolean))];
-      const executorIds = [...new Set(ordersData.map(o => o.accepted_packer_id).filter(Boolean))];
-
-      // Fetch profiles for clients and executors
-      const profilesMap = {};
-      
-      if (clientIds.length > 0) {
-        const { data: clientProfiles } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .in('id', clientIds);
-        
-        if (clientProfiles) {
-          clientProfiles.forEach(profile => {
-            profilesMap[profile.id] = profile;
-          });
-        }
-      }
-
-      if (executorIds.length > 0) {
-        const { data: executorProfiles } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .in('id', executorIds);
-        
-        if (executorProfiles) {
-          executorProfiles.forEach(profile => {
-            profilesMap[profile.id] = profile;
-          });
-        }
-      }
-
-      // Transform orders
+      // Transform orders with joined data
       const transformed = ordersData.map((order) => {
-        const clientProfile = order.client_id ? profilesMap[order.client_id] : null;
-        const executorProfile = order.accepted_packer_id ? profilesMap[order.accepted_packer_id] : null;
+        // Find accepted bid from the bids array
+        const acceptedBid = Array.isArray(order.bids) 
+          ? order.bids.find(bid => bid.status === 'accepted')
+          : null;
 
         return {
           id: order.id,
           title: order.title,
-          clientName: clientProfile?.full_name || 'Клиент',
-          clientId: order.client_id || '',
-          executorName: executorProfile?.full_name,
-          executorId: order.accepted_packer_id,
+          clientName: order.client?.full_name || 'Клиент',
+          clientId: order.client?.id || order.client_id || '',
+          executorName: order.executor?.full_name || null,
+          executorId: order.executor?.id || order.accepted_packer_id || null,
           status: mapOrderStatus(order.status),
           budget: order.budget ? `${order.budget.toLocaleString('ru-RU')} ₽` : 'Не указан',
-          price: null, // Will be fetched from accepted bid
+          price: acceptedBid?.price ? `${acceptedBid.price.toLocaleString('ru-RU')} ₽` : null,
           deadline: order.deadline,
           createdAt: order.created_at,
           articlesCount: order.items ? (Array.isArray(order.items) ? order.items.length : 0) : 0,
@@ -131,30 +115,8 @@ function ManagerExchange({ user, profile }) {
         };
       });
 
-      // Fetch prices from accepted bids
-      const orderIds = transformed.map((o) => o.id);
-      if (orderIds.length > 0) {
-        const { data: bids } = await supabase
-          .from('bids')
-          .select('order_id, price')
-          .eq('status', 'accepted')
-          .in('order_id', orderIds);
-
-        const bidMap = {};
-        (bids || []).forEach((bid) => {
-          bidMap[bid.order_id] = bid.price;
-        });
-
-        const ordersWithPrices = transformed.map((order) => ({
-          ...order,
-          price: bidMap[order.id] ? `${bidMap[order.id].toLocaleString('ru-RU')} ₽` : null,
-        }));
-
-        console.log('Fetched orders for manager:', ordersWithPrices.length);
-        setAllOrders(ordersWithPrices);
-      } else {
-        setAllOrders(transformed);
-      }
+      console.log('Fetched orders for manager:', transformed.length);
+      setAllOrders(transformed);
     } catch (error) {
       console.error('Error in fetchAllOrders:', error);
       setAllOrders([]);
@@ -163,11 +125,27 @@ function ManagerExchange({ user, profile }) {
 
   const fetchCompletedOrders = async () => {
     try {
+      // Optimized: Single query with JOINs for profiles and bids
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          client:profiles!orders_client_id_fkey (
+            id,
+            full_name
+          ),
+          executor:profiles!orders_accepted_packer_id_fkey (
+            id,
+            full_name
+          ),
+          bids:bids!bids_order_id_fkey (
+            order_id,
+            price,
+            status
+          )
+        `)
         .eq('status', 'completed')
-        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(100);
 
       if (ordersError) {
@@ -181,54 +159,23 @@ function ManagerExchange({ user, profile }) {
         return;
       }
 
-      // Get unique client and executor IDs
-      const clientIds = [...new Set(ordersData.map(o => o.client_id).filter(Boolean))];
-      const executorIds = [...new Set(ordersData.map(o => o.accepted_packer_id).filter(Boolean))];
-
-      // Fetch profiles
-      const profilesMap = {};
-      
-      if (clientIds.length > 0) {
-        const { data: clientProfiles } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .in('id', clientIds);
-        
-        if (clientProfiles) {
-          clientProfiles.forEach(profile => {
-            profilesMap[profile.id] = profile;
-          });
-        }
-      }
-
-      if (executorIds.length > 0) {
-        const { data: executorProfiles } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .in('id', executorIds);
-        
-        if (executorProfiles) {
-          executorProfiles.forEach(profile => {
-            profilesMap[profile.id] = profile;
-          });
-        }
-      }
-
-      // Transform orders
+      // Transform orders with joined data
       const transformed = ordersData.map((order) => {
-        const clientProfile = order.client_id ? profilesMap[order.client_id] : null;
-        const executorProfile = order.accepted_packer_id ? profilesMap[order.accepted_packer_id] : null;
+        // Find accepted bid from the bids array
+        const acceptedBid = Array.isArray(order.bids) 
+          ? order.bids.find(bid => bid.status === 'accepted')
+          : null;
 
         return {
           id: order.id,
           title: order.title,
-          clientName: clientProfile?.full_name || 'Клиент',
-          clientId: order.client_id || '',
-          executorName: executorProfile?.full_name || 'Исполнитель',
-          executorId: order.accepted_packer_id || '',
+          clientName: order.client?.full_name || 'Клиент',
+          clientId: order.client?.id || order.client_id || '',
+          executorName: order.executor?.full_name || 'Исполнитель',
+          executorId: order.executor?.id || order.accepted_packer_id || '',
           status: 'completed',
           budget: order.budget ? `${order.budget.toLocaleString('ru-RU')} ₽` : 'Не указан',
-          price: null,
+          price: acceptedBid?.price ? `${acceptedBid.price.toLocaleString('ru-RU')} ₽` : 'Не указана',
           deadline: order.deadline,
           createdAt: order.created_at,
           articlesCount: order.items ? (Array.isArray(order.items) ? order.items.length : 0) : 0,
@@ -238,29 +185,7 @@ function ManagerExchange({ user, profile }) {
         };
       });
 
-      // Fetch prices
-      const orderIds = transformed.map((o) => o.id);
-      if (orderIds.length > 0) {
-        const { data: bids } = await supabase
-          .from('bids')
-          .select('order_id, price')
-          .eq('status', 'accepted')
-          .in('order_id', orderIds);
-
-        const bidMap = {};
-        (bids || []).forEach((bid) => {
-          bidMap[bid.order_id] = bid.price;
-        });
-
-        const ordersWithPrices = transformed.map((order) => ({
-          ...order,
-          price: bidMap[order.id] ? `${bidMap[order.id].toLocaleString('ru-RU')} ₽` : 'Не указана',
-        }));
-
-        setCompletedOrders(ordersWithPrices);
-      } else {
-        setCompletedOrders(transformed);
-      }
+      setCompletedOrders(transformed);
     } catch (error) {
       console.error('Error in fetchCompletedOrders:', error);
       setCompletedOrders([]);
@@ -269,11 +194,22 @@ function ManagerExchange({ user, profile }) {
 
   const fetchArbitrationOrders = async () => {
     try {
+      // Optimized: Single query with JOINs for profiles
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          client:profiles!orders_client_id_fkey (
+            id,
+            full_name
+          ),
+          executor:profiles!orders_accepted_packer_id_fkey (
+            id,
+            full_name
+          )
+        `)
         .eq('is_disputed', true)
-        .order('updated_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (ordersError) {
         console.error('Error fetching arbitration orders:', ordersError);
@@ -288,51 +224,15 @@ function ManagerExchange({ user, profile }) {
         return;
       }
 
-      // Get unique client and executor IDs
-      const clientIds = [...new Set(ordersData.map(o => o.client_id).filter(Boolean))];
-      const executorIds = [...new Set(ordersData.map(o => o.accepted_packer_id).filter(Boolean))];
-
-      // Fetch profiles
-      const profilesMap = {};
-      
-      if (clientIds.length > 0) {
-        const { data: clientProfiles } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .in('id', clientIds);
-        
-        if (clientProfiles) {
-          clientProfiles.forEach(profile => {
-            profilesMap[profile.id] = profile;
-          });
-        }
-      }
-
-      if (executorIds.length > 0) {
-        const { data: executorProfiles } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .in('id', executorIds);
-        
-        if (executorProfiles) {
-          executorProfiles.forEach(profile => {
-            profilesMap[profile.id] = profile;
-          });
-        }
-      }
-
-      // Transform orders
+      // Transform orders with joined data
       const transformed = ordersData.map((order) => {
-        const clientProfile = order.client_id ? profilesMap[order.client_id] : null;
-        const executorProfile = order.accepted_packer_id ? profilesMap[order.accepted_packer_id] : null;
-
         return {
           id: order.id,
           title: order.title,
-          clientName: clientProfile?.full_name || 'Клиент',
-          clientId: order.client_id || '',
-          executorName: executorProfile?.full_name || 'Исполнитель',
-          executorId: order.accepted_packer_id || '',
+          clientName: order.client?.full_name || 'Клиент',
+          clientId: order.client?.id || order.client_id || '',
+          executorName: order.executor?.full_name || 'Исполнитель',
+          executorId: order.executor?.id || order.accepted_packer_id || '',
           status: mapOrderStatus(order.status),
           budget: order.budget ? `${order.budget.toLocaleString('ru-RU')} ₽` : 'Не указан',
           deadline: order.deadline,
@@ -341,7 +241,7 @@ function ManagerExchange({ user, profile }) {
           unreadMessages: 0,
           hasArbitration: true,
           arbitrationRequestedBy: 'client', // TODO: Determine from messages or order metadata
-          arbitrationRequestedAt: order.updated_at,
+          arbitrationRequestedAt: order.created_at, // Using created_at since updated_at may not exist
           order: order,
         };
       });
