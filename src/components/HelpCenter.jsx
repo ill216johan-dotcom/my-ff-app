@@ -462,15 +462,38 @@ const HelpCenter = ({ data }) => {
                                                         <button
                                                             key={art.id}
                                                             onClick={() => openArticle(art, cat.id)}
-                                                            className="w-full text-left p-4 bg-white hover:bg-slate-50 dark:bg-neutral-900/30 dark:hover:bg-neutral-800/50 transition-colors flex items-center gap-3 group border-0"
+                                                            className="w-full text-left p-4 hover:bg-slate-50 dark:bg-neutral-900/30 dark:hover:bg-neutral-800/50 transition-colors flex items-center gap-3 group border-0"
+                                                            style={{ 
+                                                                backgroundColor: isDarkMode ? 'rgba(23, 23, 23, 0.3)' : '#ffffff',
+                                                                color: isDarkMode ? '#ffffff' : '#111827'
+                                                            }}
                                                         >
-                                                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-semibold text-sm group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:bg-indigo-600 transition-colors" style={{ color: isDarkMode ? undefined : '#4338ca' }}>
+                                                            <div 
+                                                                className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center font-semibold text-sm group-hover:bg-indigo-600 group-hover:text-white transition-colors" 
+                                                                style={{ 
+                                                                    backgroundColor: isDarkMode ? 'rgba(79, 70, 229, 0.3)' : '#e0e7ff',
+                                                                    color: isDarkMode ? '#a5b4fc' : '#4338ca'
+                                                                }}
+                                                            >
                                                                 {index + 1}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <h4 className="font-medium text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" style={{ color: isDarkMode ? undefined : '#111827' }}>{art.title}</h4>
+                                                                <h4 
+                                                                    className="font-medium group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" 
+                                                                    style={{ 
+                                                                        color: isDarkMode ? '#ffffff' : '#111827'
+                                                                    }}
+                                                                >
+                                                                    {art.title}
+                                                                </h4>
                                                             </div>
-                                                            <ChevronRight size={16} className="text-gray-900 dark:text-neutral-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex-shrink-0" style={{ color: isDarkMode ? undefined : '#111827' }} />
+                                                            <ChevronRight 
+                                                                size={16} 
+                                                                className="group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex-shrink-0" 
+                                                                style={{ 
+                                                                    color: isDarkMode ? '#737373' : '#111827'
+                                                                }} 
+                                                            />
                                                         </button>
                                                     ))}
                                                 </div>
