@@ -344,8 +344,8 @@ const HelpCenter = ({ data }) => {
                       const hasActiveArticle = cat.articles.some(a => a.id === selectedArticle?.id);
                       return (
                           <div key={cat.id} className="mb-1">
-                              <button onClick={() => toggleCategory(cat.id)} className={`w-full flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-md transition-colors ${hasActiveArticle ? 'text-indigo-700 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20' : 'text-slate-500 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-800 dark:hover:text-neutral-200'}`}>
-                                  <div className="flex items-center gap-2"><Folder size={16} className={hasActiveArticle ? 'fill-indigo-200 dark:fill-indigo-900/50 text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-neutral-600'} /><span>{cat.title}</span></div>
+                              <button onClick={() => toggleCategory(cat.id)} className={`w-full flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-md transition-colors ${hasActiveArticle ? 'text-indigo-700 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20' : 'text-slate-700 dark:text-neutral-400 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-900 dark:hover:text-neutral-200'}`}>
+                                  <div className="flex items-center gap-2"><Folder size={16} className={hasActiveArticle ? 'fill-indigo-200 dark:fill-indigo-900/50 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-neutral-600'} /><span>{cat.title}</span></div>
                                   {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                               </button>
                               {isOpen && (
@@ -353,7 +353,7 @@ const HelpCenter = ({ data }) => {
                                       {(cat.articles || []).map(art => {
                                           const isActive = selectedArticle?.id === art.id;
                                           return (
-                                              <button key={art.id} onClick={() => openArticle(art, cat.id)} className={`w-full text-left px-3 py-1.5 text-[13px] rounded-md transition-all flex items-center gap-2 ${isActive ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-white font-medium shadow-sm border border-slate-100 dark:border-neutral-700' : 'text-slate-500 dark:text-neutral-500 hover:text-slate-900 dark:hover:text-neutral-300 hover:bg-slate-100/50 dark:hover:bg-neutral-900'}`}>
+                                              <button key={art.id} onClick={() => openArticle(art, cat.id)} className={`w-full text-left px-3 py-1.5 text-[13px] rounded-md transition-all flex items-center gap-2 ${isActive ? 'bg-white dark:bg-neutral-800 text-indigo-600 dark:text-white font-medium shadow-sm border border-slate-100 dark:border-neutral-700' : 'text-slate-700 dark:text-neutral-500 hover:text-slate-900 dark:hover:text-neutral-300 hover:bg-slate-100/50 dark:hover:bg-neutral-900'}`}>
                                                   {isActive ? <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400 flex-shrink-0"></span> : <span className="w-1.5 h-1.5 rounded-full bg-transparent flex-shrink-0"></span>}
                                                   <span className="truncate"><HighlightText text={art.title} highlight={debouncedTerm} /></span>
                                               </button>
