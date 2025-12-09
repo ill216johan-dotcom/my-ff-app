@@ -428,7 +428,7 @@ const HelpCenter = ({ data }) => {
                         </div>
 
                         {/* Mobile-Friendly Category Browser */}
-                        <div className="space-y-3 text-slate-900 dark:text-white">
+                        <div className="space-y-3 text-slate-900 dark:text-white" style={{ color: isDarkMode ? '#ffffff' : '#111827' }}>
                             {categories.map(cat => {
                                 const isExpanded = expandedCategories.includes(cat.id);
                                 const articleCount = (cat.articles || []).length;
@@ -445,8 +445,8 @@ const HelpCenter = ({ data }) => {
                                                     <Folder size={20} className="text-indigo-600 dark:text-indigo-400" />
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-semibold text-slate-900 dark:text-white text-base md:text-lg">{cat.title}</h3>
-                                                    <p className="text-sm text-slate-500 dark:text-neutral-500">{articleCount} {articleCount === 1 ? 'статья' : articleCount < 5 ? 'статьи' : 'статей'}</p>
+                                                    <h3 className="font-semibold text-slate-900 dark:text-white text-base md:text-lg" style={{ color: isDarkMode ? '#ffffff' : '#111827' }}>{cat.title}</h3>
+                                                    <p className="text-sm text-slate-500 dark:text-neutral-500" style={{ color: isDarkMode ? '#737373' : '#64748b' }}>{articleCount} {articleCount === 1 ? 'статья' : articleCount < 5 ? 'статьи' : 'статей'}</p>
                                                 </div>
                                             </div>
                                             <div className="text-slate-400 dark:text-neutral-500 transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
@@ -464,13 +464,13 @@ const HelpCenter = ({ data }) => {
                                                             onClick={() => openArticle(art, cat.id)}
                                                             className="w-full text-left p-4 bg-white hover:bg-slate-50 dark:bg-neutral-900/30 dark:hover:bg-neutral-800/50 transition-colors flex items-center gap-3 group border-0"
                                                         >
-                                                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-semibold text-sm group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:bg-indigo-600 transition-colors">
+                                                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-semibold text-sm group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:bg-indigo-600 transition-colors" style={{ color: isDarkMode ? undefined : '#4338ca' }}>
                                                                 {index + 1}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <h4 className="font-medium text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{art.title}</h4>
+                                                                <h4 className="font-medium text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" style={{ color: isDarkMode ? undefined : '#111827' }}>{art.title}</h4>
                                                             </div>
-                                                            <ChevronRight size={16} className="text-gray-900 dark:text-neutral-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex-shrink-0" />
+                                                            <ChevronRight size={16} className="text-gray-900 dark:text-neutral-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex-shrink-0" style={{ color: isDarkMode ? undefined : '#111827' }} />
                                                         </button>
                                                     ))}
                                                 </div>
