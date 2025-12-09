@@ -472,7 +472,7 @@ export default function PackagingCalculator() {
       <div className="flex justify-between items-center mb-6">
           <div>
               <h1 className={`text-2xl font-bold flex items-center gap-2 ${t.headerTitle}`}>
-                  <Truck className={t.iconPrimary} /> Калькулятор упаковки
+                  <Truck className={`${t.iconPrimary} hidden md:inline-block`} /> Калькулятор упаковки
               </h1>
               <p className={`text-sm ${t.subtitleText}`}>Расчёт стоимости услуг упаковки и упаковочных материалов</p>
           </div>
@@ -527,40 +527,63 @@ export default function PackagingCalculator() {
 
             {/* INPUTS */}
             <div className="mb-6">
-              <h3 className={`text-sm font-semibold uppercase tracking-wider mb-3 ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>Параметры</h3>
+              <h3 className={`text-sm font-semibold uppercase tracking-wider mb-4 ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>Параметры</h3>
               
               {/* Габариты - Первый ряд (3 колонки на всех экранах) */}
-              <div className="grid grid-cols-3 gap-2 mb-3">
+              <div className="grid grid-cols-3 gap-3 mb-3">
                   {['len', 'wid', 'hgt'].map(f => (
-                    <div key={f}>
-                      <label className={`block text-xs mb-1.5 text-center ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>{LABELS[f]}<br/><span className="text-[10px]">(см)</span></label>
-                      <input type="number" className={`w-full border rounded p-2 text-sm text-center focus:border-blue-500 outline-none transition-all ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200' : 'bg-white border-gray-300'}`}
-                        value={inputs[f] || ''} onChange={(e) => setInputs({...inputs, [f]: e.target.value === '' ? 0 : (parseFloat(e.target.value) || 0)})} placeholder="0" />
+                    <div key={f} className="flex flex-col">
+                      <label className={`text-[10px] uppercase mb-1 text-center font-semibold ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>
+                        {LABELS[f]} (см)
+                      </label>
+                      <input 
+                        type="number" 
+                        className={`w-full border rounded px-2 py-2.5 text-sm text-center focus:border-blue-500 outline-none transition-all ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200' : 'bg-white border-gray-300'}`}
+                        value={inputs[f] || ''} 
+                        onChange={(e) => setInputs({...inputs, [f]: e.target.value === '' ? 0 : (parseFloat(e.target.value) || 0)})} 
+                        placeholder="0" 
+                      />
                     </div>
                   ))}
               </div>
               
               {/* Вес и Количество - Второй ряд (2 колонки) */}
-              <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className={`block text-xs mb-1.5 text-center ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>Вес<br/><span className="text-[10px]">(кг)</span></label>
-                    <input type="number" step="0.01" className={`w-full border rounded p-2 text-sm text-center focus:border-blue-500 outline-none ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200' : 'bg-white border-gray-300'}`}
-                        value={inputs.wgt || ''} onChange={(e) => setInputs({...inputs, wgt: e.target.value === '' ? 0 : (parseFloat(e.target.value) || 0)})} placeholder="0" />
+              <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col">
+                    <label className={`text-[10px] uppercase mb-1 text-center font-semibold ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>
+                      Вес (кг)
+                    </label>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      className={`w-full border rounded px-2 py-2.5 text-sm text-center focus:border-blue-500 outline-none ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200' : 'bg-white border-gray-300'}`}
+                      value={inputs.wgt || ''} 
+                      onChange={(e) => setInputs({...inputs, wgt: e.target.value === '' ? 0 : (parseFloat(e.target.value) || 0)})} 
+                      placeholder="0" 
+                    />
                   </div>
-                  <div>
-                    <label className="block text-xs text-blue-500 font-bold mb-1.5 text-center">Кол-во</label>
-                    <input type="number" min="1" className={`w-full border border-blue-400 rounded p-2 text-sm font-bold text-center outline-none ${isDarkMode ? 'bg-blue-900/10 text-blue-100' : 'bg-blue-50 text-gray-800'}`}
-                        value={inputs.qty || ''} onChange={(e) => setInputs({...inputs, qty: e.target.value === '' ? 1 : (parseFloat(e.target.value) || 1)})} placeholder="1" />
+                  <div className="flex flex-col">
+                    <label className="text-[10px] uppercase text-blue-500 font-bold mb-1 text-center">
+                      Кол-во
+                    </label>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      className={`w-full border border-blue-400 rounded px-2 py-2.5 text-sm font-bold text-center outline-none ${isDarkMode ? 'bg-blue-900/10 text-blue-100' : 'bg-blue-50 text-gray-800'}`}
+                      value={inputs.qty || ''} 
+                      onChange={(e) => setInputs({...inputs, qty: e.target.value === '' ? 1 : (parseFloat(e.target.value) || 1)})} 
+                      placeholder="1" 
+                    />
                   </div>
               </div>
               
               {/* Информация и бэдж */}
-              <div className={`mt-3 p-2 rounded text-xs flex items-center justify-between ${isDarkMode ? 'bg-neutral-900/50' : 'bg-gray-50'}`}>
-                  <div className="flex gap-3 text-gray-400">
+              <div className={`mt-3 p-2.5 rounded text-xs flex items-center justify-between ${isDarkMode ? 'bg-neutral-900/50' : 'bg-gray-50'}`}>
+                  <div className="flex gap-4 text-gray-400">
                     <span>V: {results.vol.toFixed(0)}</span>
                     <span>W+H: {results.sumWH.toFixed(1)}</span>
                   </div>
-                  <span className={`px-2 py-0.5 rounded font-bold text-xs ${isDarkMode ? 'bg-neutral-800 text-neutral-400' : 'bg-gray-200 text-gray-600'}`}>{results.badge}</span>
+                  <span className={`px-2.5 py-1 rounded font-bold text-xs ${isDarkMode ? 'bg-neutral-800 text-neutral-400' : 'bg-gray-200 text-gray-600'}`}>{results.badge}</span>
               </div>
             </div>
 

@@ -419,7 +419,7 @@ const FboCalculator = () => {
       <div className="flex justify-between items-center mb-6">
           <div>
               <h1 className={`text-2xl font-bold flex items-center gap-2 ${t.headerTitle}`}>
-                  <Truck className={t.iconPrimary} /> Калькулятор выгоды Wildberries FBO
+                  <Truck className={`${t.iconPrimary} hidden md:inline-block`} /> Калькулятор выгоды Wildberries FBO
               </h1>
               <p className={`text-sm ${t.subtitleText}`}>Управление Индексом Локализации и логистикой</p>
           </div>

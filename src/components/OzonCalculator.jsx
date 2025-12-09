@@ -430,7 +430,7 @@ const OzonCalculator = () => {
         <div className="flex justify-between items-center mb-6">
           <div>
               <h1 className={`text-2xl font-bold flex items-center gap-2 ${t.headerTitle}`}>
-                  <Truck className={t.iconPrimary} /> Калькулятор выгоды Ozon FBO
+                  <Truck className={`${t.iconPrimary} hidden md:inline-block`} /> Калькулятор выгоды Ozon FBO
               </h1>
               <p className={`text-sm ${t.subtitleText}`}>Управление СВД (Среднее время доставки) и распределением по кластерам</p>
           </div>

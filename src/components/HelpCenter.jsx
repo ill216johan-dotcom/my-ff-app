@@ -161,14 +161,65 @@ const HelpCenter = ({ data }) => {
       const titleLower = (article.title || '').toLowerCase();
       const contentLower = (article.content || '').toLowerCase();
       
-      // High Priority: Title matches = +100 points (ensures top placement)
-      if (titleLower.includes(queryLower)) {
-          score += 100;
+      if (!queryLower) return 0;
+      
+      // Разбиваем запрос на отдельные слова
+      const queryWords = queryLower.split(/\s+/).filter(word => word.length > 0);
+      
+      let titleMatchFound = false;
+      
+      // Exact match in title (полное совпадение запроса) = +10000 points
+      if (titleLower === queryLower) {
+          score += 10000;
+          titleMatchFound = true;
       }
       
-      // Medium Priority: Content matches = +10 points
-      if (contentLower.includes(queryLower)) {
-          score += 10;
+      // Full phrase match in title = +5000 points
+      if (titleLower.includes(queryLower)) {
+          score += 5000;
+          titleMatchFound = true;
+      }
+      
+      // Title starts with query = +3000 points
+      if (titleLower.startsWith(queryLower)) {
+          score += 3000;
+          titleMatchFound = true;
+      }
+      
+      // Check each word separately in title
+      queryWords.forEach(word => {
+          if (word.length > 0 && titleLower.includes(word)) {
+              // Word found in title = +1000 points per word
+              score += 1000;
+              titleMatchFound = true;
+              
+              // Additional bonus if word is at the start of title
+              if (titleLower.startsWith(word)) {
+                  score += 500;
+              }
+          }
+      });
+      
+      // Если совпадение в названии найдено, контент дает минимальные баллы
+      // Если НЕ найдено в названии, тогда смотрим контент
+      if (!titleMatchFound) {
+          // Full phrase match in content = +100 points
+          if (contentLower.includes(queryLower)) {
+              score += 100;
+          }
+          
+          // Check each word in content
+          queryWords.forEach(word => {
+              if (word.length > 0 && contentLower.includes(word)) {
+                  // Word found in content = +10 points per word (only once)
+                  score += 10;
+              }
+          });
+      } else {
+          // Даем минимальный бонус за контент, если уже есть совпадение в названии
+          if (contentLower.includes(queryLower)) {
+              score += 1;
+          }
       }
       
       return score;
@@ -195,8 +246,21 @@ const HelpCenter = ({ data }) => {
           matchingArticles.sort((a, b) => b.score - a.score);
           
           if (matchingArticles.length > 0) hasMatches = true;
-          return { ...cat, articles: matchingArticles };
+          
+          // Calculate max score for this category (for category sorting)
+          const maxScore = matchingArticles.length > 0 
+              ? Math.max(...matchingArticles.map(art => art.score))
+              : 0;
+          
+          return { 
+              ...cat, 
+              articles: matchingArticles,
+              maxScore: maxScore // добавляем максимальный score категории
+          };
       }).filter(cat => cat.articles.length > 0);
+      
+      // ВАЖНО: Сортируем категории по максимальному score их статей
+      mappedCats.sort((a, b) => (b.maxScore || 0) - (a.maxScore || 0));
       
       if (!hasMatches) return categories;
       return mappedCats;
@@ -364,7 +428,7 @@ const HelpCenter = ({ data }) => {
                         </div>
 
                         {/* Mobile-Friendly Category Browser */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 text-slate-900 dark:text-white">
                             {categories.map(cat => {
                                 const isExpanded = expandedCategories.includes(cat.id);
                                 const articleCount = (cat.articles || []).length;
@@ -392,21 +456,21 @@ const HelpCenter = ({ data }) => {
 
                                         {/* Articles List */}
                                         {isExpanded && (
-                                            <div className="border-t border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-900/30">
+                                            <div className="border-t border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/30">
                                                 <div className="divide-y divide-slate-200 dark:divide-neutral-800">
                                                     {(cat.articles || []).map((art, index) => (
                                                         <button
                                                             key={art.id}
                                                             onClick={() => openArticle(art, cat.id)}
-                                                            className="w-full text-left p-4 bg-slate-100 hover:bg-white dark:bg-neutral-900/30 dark:hover:bg-neutral-800/50 transition-colors flex items-center gap-3 group"
+                                                            className="w-full text-left p-4 bg-slate-50 hover:bg-white dark:bg-neutral-900/30 dark:hover:bg-neutral-800/50 transition-colors flex items-center gap-3 group"
                                                         >
-                                                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-semibold text-sm group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:bg-indigo-600 transition-colors">
+                                                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-semibold text-sm group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:bg-indigo-600 transition-colors">
                                                                 {index + 1}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <h4 className="font-medium text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{art.title}</h4>
+                                                                <h4 className="font-medium text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{art.title}</h4>
                                                             </div>
-                                                            <ChevronRight size={16} className="text-slate-500 dark:text-neutral-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex-shrink-0" />
+                                                            <ChevronRight size={16} className="text-slate-600 dark:text-neutral-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex-shrink-0" />
                                                         </button>
                                                     ))}
                                                 </div>
