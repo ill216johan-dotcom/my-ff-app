@@ -114,8 +114,8 @@ const AiChatWidget = () => {
                 <Sparkles size={20} className="text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-base">AI Assistant</h3>
-                <p className="text-xs text-indigo-100">Always here to help</p>
+                <h3 className="font-semibold text-base">Помощник Фулфилмента</h3>
+                <p className="text-xs text-indigo-100">Всегда готов помочь</p>
               </div>
             </div>
             <button 
@@ -137,7 +137,7 @@ const AiChatWidget = () => {
                 <div className={`max-w-[85%] ${msg.role === 'user' ? 'order-2' : 'order-1'}`}>
                   {/* Timestamp */}
                   <div className={`text-xs text-gray-500 mb-1 px-1 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                    {msg.role === 'user' ? 'You' : 'AI'}
+                    {msg.role === 'user' ? 'Вы' : 'Помощник'}
                   </div>
                   {/* Message Bubble */}
                   <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
@@ -184,7 +184,7 @@ const AiChatWidget = () => {
             <div className="relative flex items-center">
               <input 
                 className="flex-1 bg-gray-100 dark:bg-neutral-800 border-0 rounded-full pl-5 pr-12 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-neutral-700 outline-none transition-all duration-200 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                placeholder="Type your message..."
+                placeholder="Введите ваше сообщение..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
