@@ -474,7 +474,7 @@ const FboCalculator = () => {
                 {['length', 'width', 'height'].map(dim => (
                     <div key={dim} className="flex-1">
                        <label className={`text-[10px] uppercase font-bold mb-1 block ${t.subtitleText}`}>{dim === 'length' ? 'Длина' : dim === 'width' ? 'Ширина' : 'Высота'}</label>
-                       <input type="number" value={product[dim]} onChange={(e) => setProduct({...product, [dim]: e.target.value === '' ? 0 : Number(e.target.value)})} className={`w-full p-1 border rounded text-center text-sm outline-none ${t.inputBg} ${t.inputBorder} ${t.inputText} ${t.focusRing}`} />
+                       <input type="number" value={product[dim] || ''} onChange={(e) => setProduct({...product, [dim]: e.target.value === '' ? 0 : Number(e.target.value)})} placeholder="0" className={`w-full p-1 border rounded text-center text-sm outline-none ${t.inputBg} ${t.inputBorder} ${t.inputText} ${t.focusRing}`} />
                     </div>
                 ))}
              </div>
@@ -485,7 +485,7 @@ const FboCalculator = () => {
                       <button onClick={() => setAnchorMode('units')} className={`text-[9px] px-1.5 rounded transition-colors ${anchorMode === 'units' ? t.lockActive : t.lockInactive}`}>{anchorMode === 'units' ? <Lock size={10} /> : <Unlock size={10} />}</button>
                   </div>
                   <div className="flex items-center gap-2">
-                      <input type="number" value={unitsPerBox} onChange={(e) => handleUnitsPerBoxChange(e.target.value)} className={`w-full p-1.5 border rounded font-bold text-center outline-none ${t.focusRing} ${manualUnitsPerBox !== null ? `${t.cardBg} border-indigo-500 ${isDark ? 'text-indigo-300' : 'text-indigo-700'}` : `${t.inputBg} ${t.inputBorder} ${t.inputText}`}`} />
+                      <input type="number" value={unitsPerBox || ''} onChange={(e) => handleUnitsPerBoxChange(e.target.value)} placeholder="1" className={`w-full p-1.5 border rounded font-bold text-center outline-none ${t.focusRing} ${manualUnitsPerBox !== null ? `${t.cardBg} border-indigo-500 ${isDark ? 'text-indigo-300' : 'text-indigo-700'}` : `${t.inputBg} ${t.inputBorder} ${t.inputText}`}`} />
                       {manualUnitsPerBox !== null && <button onClick={() => setManualUnitsPerBox(null)} title="Вернуть авторасчет" className={`p-1.5 ${t.cardBg} border ${t.inputBorder} rounded hover:bg-opacity-80 text-slate-400`}><RefreshCw size={14} /></button>}
                   </div>
                 </div>
@@ -515,14 +515,14 @@ const FboCalculator = () => {
                          <label className={`text-[10px] uppercase font-bold ${t.subtitleText}`}>Всего коробов</label>
                          {(manualTotalBoxes !== null || manualTotalItems !== null) && <button onClick={() => {setManualTotalBoxes(null); setManualTotalItems(null)}} className="text-gray-400 hover:text-indigo-500"><RefreshCw size={10}/></button>}
                      </div>
-                     <input type="number" value={displayTotalBoxes} onChange={(e) => handleTotalBoxesChange(e.target.value)} className={`w-full p-1.5 text-lg font-bold border rounded outline-none ${t.focusRing} ${manualTotalBoxes !== null ? 'border-indigo-500' : t.inputBorder} ${manualTotalBoxes !== null ? t.filledInputBg : t.emptyInputBg} ${manualTotalBoxes !== null ? t.filledInputText : t.inputText}`} />
+                     <input type="number" value={displayTotalBoxes || ''} onChange={(e) => handleTotalBoxesChange(e.target.value)} placeholder="0" className={`w-full p-1.5 text-lg font-bold border rounded outline-none ${t.focusRing} ${manualTotalBoxes !== null ? 'border-indigo-500' : t.inputBorder} ${manualTotalBoxes !== null ? t.filledInputBg : t.emptyInputBg} ${manualTotalBoxes !== null ? t.filledInputText : t.inputText}`} />
                  </div>
                  <div className="flex-1 text-right">
                      <div className="flex justify-end items-center mb-1 gap-2">
                          <button onClick={() => setAnchorMode('items')} className={`text-[9px] px-1.5 rounded transition-colors ${anchorMode === 'items' ? t.lockActive : t.lockInactive}`}>{anchorMode === 'items' ? <Lock size={10} /> : <Unlock size={10} />}</button>
                          <label className={`text-[10px] uppercase font-bold ${t.subtitleText} block`}>Товаров в партии</label>
                      </div>
-                     <input type="number" value={displayTotalItems} onChange={(e) => handleTotalItemsChange(e.target.value)} className={`w-full p-1.5 text-lg font-bold text-indigo-500 border rounded outline-none text-right ${t.focusRing} ${manualTotalItems !== null ? (isDark ? 'border-indigo-500/50 bg-indigo-900/20' : 'border-indigo-300 bg-indigo-50/20') : `${t.inputBg} ${t.inputBorder}`}`} />
+                     <input type="number" value={displayTotalItems || ''} onChange={(e) => handleTotalItemsChange(e.target.value)} placeholder="0" className={`w-full p-1.5 text-lg font-bold text-indigo-500 border rounded outline-none text-right ${t.focusRing} ${manualTotalItems !== null ? (isDark ? 'border-indigo-500/50 bg-indigo-900/20' : 'border-indigo-300 bg-indigo-50/20') : `${t.inputBg} ${t.inputBorder}`}`} />
                  </div>
              </div>
              <div className={`border rounded-lg overflow-hidden ${t.cardBorder}`}>
@@ -551,29 +551,30 @@ const FboCalculator = () => {
                                          </div>
                                      </td>
                                      <td className="px-2 py-2 w-20">
-                                         <div className="flex justify-center">
-                                             <input 
-                                                type="number" 
-                                                min="0"
-                                                value={w.boxCount} 
-                                                onChange={(e) => handleBoxChange(w.id, e.target.value)}
-                                                className={`w-14 p-1 text-center border rounded font-bold outline-none ${t.focusRing} 
-                                                  ${isDark 
-                                                      ? (w.boxCount > 0 ? 'bg-indigo-900/20 border-indigo-500/50 text-indigo-300' : `${t.inputBg} ${t.inputBorder} ${t.inputText}`) 
-                                                      : (w.boxCount > 0 ? 'bg-white border-indigo-300 text-indigo-700' : 'bg-slate-50 border-slate-200 text-slate-400 focus:bg-white')}`}
-                                             />
-                                         </div>
-                                     </td>
+                                        <div className="flex justify-center">
+                                            <input 
+                                               type="number" 
+                                               value={w.boxCount || ''} 
+                                               onChange={(e) => handleBoxChange(w.id, e.target.value)}
+                                               placeholder="0"
+                                               className={`w-14 p-1 text-center border rounded font-bold outline-none ${t.focusRing} 
+                                                 ${isDark 
+                                                     ? (w.boxCount > 0 ? 'bg-indigo-900/20 border-indigo-500/50 text-indigo-300' : `${t.inputBg} ${t.inputBorder} ${t.inputText}`) 
+                                                     : (w.boxCount > 0 ? 'bg-white border-indigo-300 text-indigo-700' : 'bg-slate-50 border-slate-200 text-slate-400 focus:bg-white')}`}
+                                            />
+                                        </div>
+                                    </td>
                                      <td className="px-2 py-2 w-24">
-                                         <div className="flex justify-end">
-                                             <input 
-                                                type="number"
-                                                value={w.logisticCostBox}
-                                                onChange={(e) => handleLogisticCostChange(w.id, e.target.value)}
-                                                className={`w-16 p-1 text-right border border-transparent rounded text-sm font-medium outline-none transition-all bg-transparent ${t.inputText} focus:ring-2 ${t.focusRing} ${isDark ? 'hover:border-gray-600 focus:bg-[#25262b]' : 'hover:border-slate-300 focus:bg-white'}`}
-                                             />
-                                         </div>
-                                     </td>
+                                        <div className="flex justify-end">
+                                            <input 
+                                               type="number"
+                                               value={w.logisticCostBox || ''}
+                                               onChange={(e) => handleLogisticCostChange(w.id, e.target.value)}
+                                               placeholder="0"
+                                               className={`w-16 p-1 text-right border border-transparent rounded text-sm font-medium outline-none transition-all bg-transparent ${t.inputText} focus:ring-2 ${t.focusRing} ${isDark ? 'hover:border-gray-600 focus:bg-[#25262b]' : 'hover:border-slate-300 focus:bg-white'}`}
+                                            />
+                                        </div>
+                                    </td>
                                  </tr>
                              ))}
                          </tbody>
@@ -591,15 +592,15 @@ const FboCalculator = () => {
                         <div>
                             <div className="text-[10px] font-bold text-indigo-400 uppercase mb-1">За единицу товара (₽/шт)</div>
                             <div className="space-y-1">
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Обработка</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.processing} onChange={e => setFfRates({...ffRates, processing: e.target.value === '' ? 0 : +e.target.value})} /></div>
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Спецификация</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.specification} onChange={e => setFfRates({...ffRates, specification: e.target.value === '' ? 0 : +e.target.value})} /></div>
+                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Обработка</span> <input type="number" className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.processing || ''} onChange={e => setFfRates({...ffRates, processing: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" /></div>
+                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Спецификация</span> <input type="number" className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.specification || ''} onChange={e => setFfRates({...ffRates, specification: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" /></div>
                             </div>
                         </div>
                         <div>
                              <div className="text-[10px] font-bold text-indigo-400 uppercase mb-1">За короб (₽/кор)</div>
                              <div className="space-y-1">
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Сборка и марк.</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxAssembly} onChange={e => setFfRates({...ffRates, boxAssembly: e.target.value === '' ? 0 : +e.target.value})} /></div>
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Цена короба</span> <input className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxMaterial} onChange={e => setFfRates({...ffRates, boxMaterial: e.target.value === '' ? 0 : +e.target.value})} /></div>
+                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Сборка и марк.</span> <input type="number" className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxAssembly || ''} onChange={e => setFfRates({...ffRates, boxAssembly: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" /></div>
+                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Цена короба</span> <input type="number" className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxMaterial || ''} onChange={e => setFfRates({...ffRates, boxMaterial: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" /></div>
                              </div>
                         </div>
                     </div>

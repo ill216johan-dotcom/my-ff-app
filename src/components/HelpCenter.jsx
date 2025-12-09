@@ -245,7 +245,7 @@ const HelpCenter = ({ data }) => {
       <div className="flex flex-1 -mx-6 lg:-mx-8">
 
         {/* SIDEBAR */}
-        <aside className={`fixed inset-y-0 left-0 z-40 w-full md:w-80 md:static border-r transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} bg-[#F9FAFB] dark:bg-black border-slate-200 dark:border-white/10 pt-20 md:pt-0`}>
+        <aside className={`fixed inset-y-0 left-0 z-40 w-full md:w-80 md:static border-r transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} bg-[#F9FAFB] dark:bg-black border-slate-200 dark:border-white/10 pt-28 md:pt-0`}>
           {/* Mobile Overlay */}
           {mobileMenuOpen && (
             <div 
