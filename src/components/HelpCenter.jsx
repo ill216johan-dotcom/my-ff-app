@@ -306,7 +306,7 @@ const HelpCenter = ({ data }) => {
         </aside>
 
         {/* CONTENT */}
-        <main className="flex-1 min-h-screen w-full transition-colors duration-300 bg-white dark:bg-[#0a0a0a]">
+        <div className="flex-1 min-h-screen w-full transition-colors duration-300 bg-white dark:bg-[#0a0a0a]">
           <div className="max-w-[1200px] mx-auto flex items-start">
               <div className="flex-1 px-6 py-10 md:px-12 md:py-12 min-w-0"> 
                 {selectedArticle ? (
@@ -392,13 +392,13 @@ const HelpCenter = ({ data }) => {
 
                                         {/* Articles List */}
                                         {isExpanded && (
-                                            <div className="border-t border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/30">
+                                            <div className="border-t border-slate-200 dark:border-neutral-800 bg-slate-100 dark:bg-neutral-900/30">
                                                 <div className="divide-y divide-slate-200 dark:divide-neutral-800">
                                                     {(cat.articles || []).map((art, index) => (
                                                         <button
                                                             key={art.id}
                                                             onClick={() => openArticle(art, cat.id)}
-                                                            className="w-full text-left p-4 hover:bg-white dark:hover:bg-neutral-800/50 transition-colors flex items-center gap-3 group"
+                                                            className="w-full text-left p-4 bg-slate-100 hover:bg-white dark:bg-neutral-900/30 dark:hover:bg-neutral-800/50 transition-colors flex items-center gap-3 group"
                                                         >
                                                             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-semibold text-sm group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:bg-indigo-600 transition-colors">
                                                                 {index + 1}
@@ -406,7 +406,7 @@ const HelpCenter = ({ data }) => {
                                                             <div className="flex-1 min-w-0">
                                                                 <h4 className="font-medium text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{art.title}</h4>
                                                             </div>
-                                                            <ChevronRight size={16} className="text-slate-400 dark:text-neutral-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex-shrink-0" />
+                                                            <ChevronRight size={16} className="text-slate-500 dark:text-neutral-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex-shrink-0" />
                                                         </button>
                                                     ))}
                                                 </div>
@@ -445,7 +445,7 @@ const HelpCenter = ({ data }) => {
                 )}
             </aside>
           </div>
-        </main>
+        </div>
       </div>
     </CalculatorLayout>
   );
