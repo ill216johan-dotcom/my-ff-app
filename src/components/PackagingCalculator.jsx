@@ -502,22 +502,22 @@ export default function PackagingCalculator() {
 
               <div className="flex gap-2 w-full sm:w-auto">
                 <input 
-                    className={`text-xs border rounded px-3 py-1.5 w-full sm:w-40 focus:outline-none focus:border-blue-400 transition-colors ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200 placeholder-neutral-600' : 'bg-white border-gray-300 text-gray-800'}`}
+                    className={`text-xs border rounded px-3 py-1.5 flex-1 sm:flex-initial sm:w-40 focus:outline-none focus:border-blue-400 transition-colors ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200 placeholder-neutral-600' : 'bg-white border-gray-300 text-gray-800'}`}
                     placeholder="Название SKU"
                     value={tempName}
                     onChange={handleNameChange}
                 />
                 
                 {!activeSkuId ? (
-                  <button onClick={handleAdd} className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1">
+                  <button onClick={handleAdd} className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1 whitespace-nowrap flex-shrink-0">
                     <Plus size={14} /> В список
                   </button>
                 ) : (
-                  <div className="flex gap-2">
-                    <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1">
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1 whitespace-nowrap">
                       <Save size={14} />
                     </button>
-                    <button onClick={handleDuplicate} className={`text-white text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1 ${isDarkMode ? 'bg-neutral-700 hover:bg-neutral-600' : 'bg-gray-600 hover:bg-gray-700'}`}>
+                    <button onClick={handleDuplicate} className={`text-white text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1 whitespace-nowrap ${isDarkMode ? 'bg-neutral-700 hover:bg-neutral-600' : 'bg-gray-600 hover:bg-gray-700'}`}>
                       <Copy size={14} />
                     </button>
                   </div>
@@ -528,29 +528,39 @@ export default function PackagingCalculator() {
             {/* INPUTS */}
             <div className="mb-6">
               <h3 className={`text-sm font-semibold uppercase tracking-wider mb-3 ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>Параметры</h3>
-              <div className="grid grid-cols-5 gap-3">
+              
+              {/* Габариты - Первый ряд (3 колонки на всех экранах) */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
                   {['len', 'wid', 'hgt'].map(f => (
                     <div key={f}>
-                      <label className={`block text-xs mb-1 ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>{LABELS[f]} (см)</label>
-                      <input type="number" className={`w-full border rounded p-2 text-sm focus:border-blue-500 outline-none transition-all ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200' : 'bg-white border-gray-300'}`}
+                      <label className={`block text-xs mb-1.5 text-center ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>{LABELS[f]}<br/><span className="text-[10px]">(см)</span></label>
+                      <input type="number" className={`w-full border rounded p-2 text-sm text-center focus:border-blue-500 outline-none transition-all ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200' : 'bg-white border-gray-300'}`}
                         value={inputs[f] || ''} onChange={(e) => setInputs({...inputs, [f]: e.target.value === '' ? 0 : (parseFloat(e.target.value) || 0)})} placeholder="0" />
                     </div>
                   ))}
+              </div>
+              
+              {/* Вес и Количество - Второй ряд (2 колонки) */}
+              <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className={`block text-xs mb-1 ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>Вес (кг)</label>
-                    <input type="number" step="0.01" className={`w-full border rounded p-2 text-sm focus:border-blue-500 outline-none ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200' : 'bg-white border-gray-300'}`}
+                    <label className={`block text-xs mb-1.5 text-center ${isDarkMode ? 'text-neutral-500' : 'text-gray-500'}`}>Вес<br/><span className="text-[10px]">(кг)</span></label>
+                    <input type="number" step="0.01" className={`w-full border rounded p-2 text-sm text-center focus:border-blue-500 outline-none ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-200' : 'bg-white border-gray-300'}`}
                         value={inputs.wgt || ''} onChange={(e) => setInputs({...inputs, wgt: e.target.value === '' ? 0 : (parseFloat(e.target.value) || 0)})} placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-xs text-blue-500 font-bold mb-1">Кол-во</label>
-                    <input type="number" min="1" className={`w-full border border-blue-400 rounded p-2 text-sm font-bold outline-none ${isDarkMode ? 'bg-blue-900/10 text-blue-100' : 'bg-blue-50 text-gray-800'}`}
+                    <label className="block text-xs text-blue-500 font-bold mb-1.5 text-center">Кол-во</label>
+                    <input type="number" min="1" className={`w-full border border-blue-400 rounded p-2 text-sm font-bold text-center outline-none ${isDarkMode ? 'bg-blue-900/10 text-blue-100' : 'bg-blue-50 text-gray-800'}`}
                         value={inputs.qty || ''} onChange={(e) => setInputs({...inputs, qty: e.target.value === '' ? 1 : (parseFloat(e.target.value) || 1)})} placeholder="1" />
                   </div>
               </div>
-              <div className="mt-2 text-xs text-gray-400 flex gap-4">
-                  <span>V: {results.vol.toFixed(0)}</span>
-                  <span>W+H: {results.sumWH.toFixed(1)}</span>
-                  <span className={`ml-auto px-2 rounded font-bold ${isDarkMode ? 'bg-neutral-800 text-neutral-400' : 'bg-gray-200 text-gray-600'}`}>{results.badge}</span>
+              
+              {/* Информация и бэдж */}
+              <div className={`mt-3 p-2 rounded text-xs flex items-center justify-between ${isDarkMode ? 'bg-neutral-900/50' : 'bg-gray-50'}`}>
+                  <div className="flex gap-3 text-gray-400">
+                    <span>V: {results.vol.toFixed(0)}</span>
+                    <span>W+H: {results.sumWH.toFixed(1)}</span>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded font-bold text-xs ${isDarkMode ? 'bg-neutral-800 text-neutral-400' : 'bg-gray-200 text-gray-600'}`}>{results.badge}</span>
               </div>
             </div>
 
