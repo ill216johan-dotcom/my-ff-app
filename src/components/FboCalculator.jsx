@@ -122,36 +122,36 @@ const FboCalculator = () => {
   // --- 4. СКЛАДЫ ---
   const initialWarehouses = [
     // ЦФО
-    { id: 1, name: 'Коледино', region: 'ЦФО', logisticCostBox: 280, wbCoeff: 2.00, boxCount: 0, regionDemand: 25, isHub: true },
-    { id: 2, name: 'Подольск', region: 'ЦФО', logisticCostBox: 280, wbCoeff: 2.00, boxCount: 0, regionDemand: 8, isHub: true },
-    { id: 3, name: 'Электросталь', region: 'ЦФО', logisticCostBox: 390, wbCoeff: 1.75, boxCount: 0, regionDemand: 10, isHub: true },
-    { id: 4, name: 'Тула', region: 'ЦФО', logisticCostBox: 470, wbCoeff: 1.60, boxCount: 0, regionDemand: 4, isHub: false },
-    { id: 5, name: 'Рязань', region: 'ЦФО', logisticCostBox: 550, wbCoeff: 1.40, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 6, name: 'Белые столбы', region: 'ЦФО', logisticCostBox: 280, wbCoeff: 2.80, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 7, name: 'Котовск', region: 'ЦФО', logisticCostBox: 550, wbCoeff: 1.20, boxCount: 0, regionDemand: 1, isHub: false },
-    { id: 8, name: 'Владимир (Ворш.)', region: 'ЦФО', logisticCostBox: 450, wbCoeff: 1.30, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 9, name: 'Софьино', region: 'ЦФО', logisticCostBox: 350, wbCoeff: 1.00, boxCount: 0, regionDemand: 3, isHub: false },
-    { id: 10, name: 'Ярославль', region: 'ЦФО', logisticCostBox: 500, wbCoeff: 1.60, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 11, name: 'Воронеж', region: 'ЦФО', logisticCostBox: 550, wbCoeff: 0.75, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 1, name: 'Коледино', region: 'ЦФО', logisticCostBox: 220, wbCoeff: 2.00, boxCount: 0, regionDemand: 25, isHub: true },
+    { id: 2, name: 'Подольск', region: 'ЦФО', logisticCostBox: 220, wbCoeff: 2.00, boxCount: 0, regionDemand: 8, isHub: true },
+    { id: 3, name: 'Электросталь', region: 'ЦФО', logisticCostBox: 260, wbCoeff: 1.75, boxCount: 0, regionDemand: 10, isHub: true },
+    { id: 4, name: 'Тула', region: 'ЦФО', logisticCostBox: 305, wbCoeff: 1.60, boxCount: 0, regionDemand: 4, isHub: false },
+    { id: 5, name: 'Рязань', region: 'ЦФО', logisticCostBox: 305, wbCoeff: 1.40, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 6, name: 'Белые столбы', region: 'ЦФО', logisticCostBox: 220, wbCoeff: 2.80, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 7, name: 'Котовск', region: 'ЦФО', logisticCostBox: 390, wbCoeff: 1.20, boxCount: 0, regionDemand: 1, isHub: false },
+    { id: 8, name: 'Владимир (Ворш.)', region: 'ЦФО', logisticCostBox: 280, wbCoeff: 1.30, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 9, name: 'Софьино', region: 'ЦФО', logisticCostBox: 260, wbCoeff: 1.00, boxCount: 0, regionDemand: 3, isHub: false },
+    { id: 10, name: 'Ярославль', region: 'ЦФО', logisticCostBox: 310, wbCoeff: 1.60, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 11, name: 'Воронеж', region: 'ЦФО', logisticCostBox: 400, wbCoeff: 0.75, boxCount: 0, regionDemand: 2, isHub: false },
     // СЗФО
-    { id: 12, name: 'СПб (СЦ Шушары)', region: 'СЗФО', logisticCostBox: 650, wbCoeff: 2.20, boxCount: 0, regionDemand: 6, isHub: true },
-    { id: 13, name: 'СПб (Уткина)', region: 'СЗФО', logisticCostBox: 650, wbCoeff: 3.00, boxCount: 0, regionDemand: 3, isHub: false },
+    { id: 12, name: 'СПб (СЦ Шушары)', region: 'СЗФО', logisticCostBox: 430, wbCoeff: 2.20, boxCount: 0, regionDemand: 6, isHub: true },
+    { id: 13, name: 'СПб (Уткина)', region: 'СЗФО', logisticCostBox: 430, wbCoeff: 3.00, boxCount: 0, regionDemand: 3, isHub: false },
     // ПФО
-    { id: 14, name: 'Казань', region: 'ПФО', logisticCostBox: 600, wbCoeff: 2.20, boxCount: 0, regionDemand: 8, isHub: true },
-    { id: 15, name: 'Новосемейкино', region: 'ПФО', logisticCostBox: 750, wbCoeff: 0.85, boxCount: 0, regionDemand: 3, isHub: false },
-    { id: 16, name: 'Сарапул', region: 'ПФО', logisticCostBox: 800, wbCoeff: 0.85, boxCount: 0, regionDemand: 1, isHub: false },
-    { id: 17, name: 'Пенза', region: 'ПФО', logisticCostBox: 600, wbCoeff: 1.00, boxCount: 0, regionDemand: 1, isHub: false },
-    { id: 18, name: 'Нижний Новгород', region: 'ПФО', logisticCostBox: 550, wbCoeff: 1.00, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 14, name: 'Казань', region: 'ПФО', logisticCostBox: 445, wbCoeff: 2.20, boxCount: 0, regionDemand: 8, isHub: true },
+    { id: 15, name: 'Новосемейкино', region: 'ПФО', logisticCostBox: 500, wbCoeff: 0.85, boxCount: 0, regionDemand: 3, isHub: false },
+    { id: 16, name: 'Сарапул', region: 'ПФО', logisticCostBox: 590, wbCoeff: 0.85, boxCount: 0, regionDemand: 1, isHub: false },
+    { id: 17, name: 'Пенза', region: 'ПФО', logisticCostBox: 400, wbCoeff: 1.00, boxCount: 0, regionDemand: 1, isHub: false },
+    { id: 18, name: 'Нижний Новгород', region: 'ПФО', logisticCostBox: 455, wbCoeff: 1.00, boxCount: 0, regionDemand: 2, isHub: false },
     // ЮФО
-    { id: 19, name: 'Краснодар', region: 'ЮФО', logisticCostBox: 650, wbCoeff: 1.65, boxCount: 0, regionDemand: 8, isHub: true },
-    { id: 20, name: 'Волгоград', region: 'ЮФО', logisticCostBox: 800, wbCoeff: 1.10, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 19, name: 'Краснодар', region: 'ЮФО', logisticCostBox: 525, wbCoeff: 1.65, boxCount: 0, regionDemand: 8, isHub: true },
+    { id: 20, name: 'Волгоград', region: 'ЮФО', logisticCostBox: 590, wbCoeff: 1.10, boxCount: 0, regionDemand: 2, isHub: false },
     // СКФО
-    { id: 21, name: 'Невинномысск', region: 'СКФО', logisticCostBox: 700, wbCoeff: 1.05, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 21, name: 'Невинномысск', region: 'СКФО', logisticCostBox: 570, wbCoeff: 1.05, boxCount: 0, regionDemand: 2, isHub: false },
     // Урал
-    { id: 22, name: 'Екатеринбург (Исп)', region: 'Урал', logisticCostBox: 900, wbCoeff: 2.25, boxCount: 0, regionDemand: 5, isHub: true },
-    { id: 23, name: 'Екатеринбург (Пер)', region: 'Урал', logisticCostBox: 900, wbCoeff: 1.20, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 22, name: 'Екатеринбург (Исп)', region: 'Урал', logisticCostBox: 655, wbCoeff: 2.25, boxCount: 0, regionDemand: 5, isHub: true },
+    { id: 23, name: 'Екатеринбург (Пер)', region: 'Урал', logisticCostBox: 655, wbCoeff: 1.20, boxCount: 0, regionDemand: 2, isHub: false },
     // СФО
-    { id: 24, name: 'Новосибирск', region: 'СФО', logisticCostBox: 1200, wbCoeff: 4.45, boxCount: 0, regionDemand: 4, isHub: true },
+    { id: 24, name: 'Новосибирск', region: 'СФО', logisticCostBox: 1050, wbCoeff: 4.45, boxCount: 0, regionDemand: 4, isHub: true },
   ];
 
   const [warehouses, setWarehouses] = useState(initialWarehouses);
@@ -273,6 +273,9 @@ const FboCalculator = () => {
   const handleLogisticCostChange = (id, value) => {
     const val = value === '' ? 0 : Math.max(0, parseInt(value) || 0);
     setWarehouses(warehouses.map(w => w.id === id ? { ...w, logisticCostBox: val } : w));
+  };
+  const handleWbCoeffChange = (id, value) => {
+    setWarehouses(warehouses.map(w => w.id === id ? { ...w, wbCoeff: value } : w));
   };
   const distributeBoxes = (targetTotal) => {
       if (currentTableBoxes > 0) {
@@ -546,7 +549,17 @@ const FboCalculator = () => {
                                              </div>
                                              <div className="flex gap-2 mt-1">
                                                  <span className={`text-[9px] px-1.5 py-0.5 rounded border ${getRegionColor(w.region)}`}>{w.region}</span>
-                                                 <span className={`text-[9px] px-1.5 py-0.5 rounded border ${t.wbBadge}`}>ВБ x{w.wbCoeff}</span>
+                                                 <span className={`inline-flex items-center text-[9px] px-1.5 py-0.5 rounded border ${t.wbBadge}`}>
+                                                     ВБ x
+                                                     <input
+                                                         type="number"
+                                                         step="0.01"
+                                                         value={w.wbCoeff}
+                                                         onChange={(e) => handleWbCoeffChange(w.id, e.target.value)}
+                                                         className="bg-transparent border-none outline-none p-0 ml-0.5 w-8 text-inherit leading-none appearance-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none m-0"
+                                                         style={{ MozAppearance: 'textfield' }}
+                                                     />
+                                                 </span>
                                              </div>
                                          </div>
                                      </td>
