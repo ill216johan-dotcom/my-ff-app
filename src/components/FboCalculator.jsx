@@ -103,12 +103,37 @@ const FboCalculator = () => {
     weight: 0.5
   });
 
+  const [extraPacking, setExtraPacking] = useState({
+    enabled: false, value: 0, type: 'unit' // 'unit' or 'total'
+  });
+
   const [manualLiterage, setManualLiterage] = useState(null);
   const [manualUnitsPerBox, setManualUnitsPerBox] = useState(null);
 
+  // --- IRP HELPERS ---
+  const getKrpPercent = (locIdx) => {
+    // Mapping locIndex (multiplier 0.5-2.0) to KRP % (from news file)
+    // 1.0 multiplier is 60% localization -> KRP 0
+    if (locIdx <= 1.0) return 0;
+    
+    // Roughly map multipliers to KRP percentages:
+    // 2.0 (0-5% IL) -> 2.5%
+    // 1.5 (25-30% IL) -> 2.2%
+    // 1.1 (50-55% IL) -> 2.05%
+    if (locIdx >= 1.95) return 0.025;
+    if (locIdx >= 1.5) return 0.022;
+    if (locIdx >= 1.1) return 0.0205;
+    return 0.02; // Default for 55-60%
+  };
+
+  const calculateReturnLogistics = (liters) => {
+    if (liters <= 1) return 32;
+    return 46 + 14 * (liters - 1);
+  };
+
   // --- 2. ТАРИФЫ ---
   const [ffRates, setFfRates] = useState({
-    processing: 15, specification: 3, boxAssembly: 55, boxMaterial: 65
+    processing: 15, specification: 3, boxAssembly: 45, boxMaterial: 55
   });
 
   // --- 3. НАСТРОЙКИ КЛИЕНТА ---
@@ -122,36 +147,36 @@ const FboCalculator = () => {
   // --- 4. СКЛАДЫ ---
   const initialWarehouses = [
     // ЦФО
-    { id: 1, name: 'Коледино', region: 'ЦФО', logisticCostBox: 220, wbCoeff: 2.00, boxCount: 0, regionDemand: 25, isHub: true },
-    { id: 2, name: 'Подольск', region: 'ЦФО', logisticCostBox: 220, wbCoeff: 2.00, boxCount: 0, regionDemand: 8, isHub: true },
-    { id: 3, name: 'Электросталь', region: 'ЦФО', logisticCostBox: 260, wbCoeff: 1.75, boxCount: 0, regionDemand: 10, isHub: true },
-    { id: 4, name: 'Тула', region: 'ЦФО', logisticCostBox: 305, wbCoeff: 1.60, boxCount: 0, regionDemand: 4, isHub: false },
-    { id: 5, name: 'Рязань', region: 'ЦФО', logisticCostBox: 305, wbCoeff: 1.40, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 6, name: 'Белые столбы', region: 'ЦФО', logisticCostBox: 220, wbCoeff: 2.80, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 7, name: 'Котовск', region: 'ЦФО', logisticCostBox: 390, wbCoeff: 1.20, boxCount: 0, regionDemand: 1, isHub: false },
-    { id: 8, name: 'Владимир (Ворш.)', region: 'ЦФО', logisticCostBox: 280, wbCoeff: 1.30, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 9, name: 'Софьино', region: 'ЦФО', logisticCostBox: 260, wbCoeff: 1.00, boxCount: 0, regionDemand: 3, isHub: false },
-    { id: 10, name: 'Ярославль', region: 'ЦФО', logisticCostBox: 310, wbCoeff: 1.60, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 11, name: 'Воронеж', region: 'ЦФО', logisticCostBox: 400, wbCoeff: 0.75, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 1, name: 'Коледино', region: 'ЦФО', logisticCostBox: 132, wbCoeff: 2.00, boxCount: 0, regionDemand: 25, isHub: true },
+    { id: 2, name: 'Подольск', region: 'ЦФО', logisticCostBox: 132, wbCoeff: 2.00, boxCount: 0, regionDemand: 8, isHub: true },
+    { id: 3, name: 'Электросталь', region: 'ЦФО', logisticCostBox: 156, wbCoeff: 1.40, boxCount: 0, regionDemand: 10, isHub: true },
+    { id: 4, name: 'Тула', region: 'ЦФО', logisticCostBox: 183, wbCoeff: 1.60, boxCount: 0, regionDemand: 4, isHub: false },
+    { id: 5, name: 'Рязань', region: 'ЦФО', logisticCostBox: 183, wbCoeff: 1.40, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 6, name: 'Белые столбы', region: 'ЦФО', logisticCostBox: 132, wbCoeff: 2.80, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 7, name: 'Котовск', region: 'ЦФО', logisticCostBox: 234, wbCoeff: 1.40, boxCount: 0, regionDemand: 1, isHub: false },
+    { id: 8, name: 'Владимир (Ворш.)', region: 'ЦФО', logisticCostBox: 168, wbCoeff: 1.30, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 9, name: 'Софьино', region: 'ЦФО', logisticCostBox: 156, wbCoeff: 0.95, boxCount: 0, regionDemand: 3, isHub: false },
+    { id: 10, name: 'Ярославль', region: 'ЦФО', logisticCostBox: 186, wbCoeff: 1.60, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 11, name: 'Воронеж', region: 'ЦФО', logisticCostBox: 240, wbCoeff: 0.75, boxCount: 0, regionDemand: 2, isHub: false },
     // СЗФО
-    { id: 12, name: 'СПб (СЦ Шушары)', region: 'СЗФО', logisticCostBox: 430, wbCoeff: 2.20, boxCount: 0, regionDemand: 6, isHub: true },
-    { id: 13, name: 'СПб (Уткина)', region: 'СЗФО', logisticCostBox: 430, wbCoeff: 3.00, boxCount: 0, regionDemand: 3, isHub: false },
+    { id: 12, name: 'СПб (СЦ Шушары)', region: 'СЗФО', logisticCostBox: 258, wbCoeff: 2.20, boxCount: 0, regionDemand: 6, isHub: true },
+    { id: 13, name: 'СПб (Уткина)', region: 'СЗФО', logisticCostBox: 258, wbCoeff: 3.00, boxCount: 0, regionDemand: 3, isHub: false },
     // ПФО
-    { id: 14, name: 'Казань', region: 'ПФО', logisticCostBox: 445, wbCoeff: 2.20, boxCount: 0, regionDemand: 8, isHub: true },
-    { id: 15, name: 'Новосемейкино', region: 'ПФО', logisticCostBox: 500, wbCoeff: 0.85, boxCount: 0, regionDemand: 3, isHub: false },
-    { id: 16, name: 'Сарапул', region: 'ПФО', logisticCostBox: 590, wbCoeff: 0.85, boxCount: 0, regionDemand: 1, isHub: false },
-    { id: 17, name: 'Пенза', region: 'ПФО', logisticCostBox: 400, wbCoeff: 1.00, boxCount: 0, regionDemand: 1, isHub: false },
-    { id: 18, name: 'Нижний Новгород', region: 'ПФО', logisticCostBox: 455, wbCoeff: 1.00, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 14, name: 'Казань', region: 'ПФО', logisticCostBox: 267, wbCoeff: 2.20, boxCount: 0, regionDemand: 8, isHub: true },
+    { id: 15, name: 'Новосемейкино', region: 'ПФО', logisticCostBox: 300, wbCoeff: 0.85, boxCount: 0, regionDemand: 3, isHub: false },
+    { id: 16, name: 'Сарапул', region: 'ПФО', logisticCostBox: 354, wbCoeff: 0.85, boxCount: 0, regionDemand: 1, isHub: false },
+    { id: 17, name: 'Пенза', region: 'ПФО', logisticCostBox: 240, wbCoeff: 1.00, boxCount: 0, regionDemand: 1, isHub: false },
+    { id: 18, name: 'Нижний Новгород', region: 'ПФО', logisticCostBox: 273, wbCoeff: 1.00, boxCount: 0, regionDemand: 2, isHub: false },
     // ЮФО
-    { id: 19, name: 'Краснодар', region: 'ЮФО', logisticCostBox: 525, wbCoeff: 1.65, boxCount: 0, regionDemand: 8, isHub: true },
-    { id: 20, name: 'Волгоград', region: 'ЮФО', logisticCostBox: 590, wbCoeff: 1.10, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 19, name: 'Краснодар', region: 'ЮФО', logisticCostBox: 315, wbCoeff: 1.65, boxCount: 0, regionDemand: 8, isHub: true },
+    { id: 20, name: 'Волгоград', region: 'ЮФО', logisticCostBox: 354, wbCoeff: 1.10, boxCount: 0, regionDemand: 2, isHub: false },
     // СКФО
-    { id: 21, name: 'Невинномысск', region: 'СКФО', logisticCostBox: 570, wbCoeff: 1.05, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 21, name: 'Невинномысск', region: 'СКФО', logisticCostBox: 342, wbCoeff: 1.05, boxCount: 0, regionDemand: 2, isHub: false },
     // Урал
-    { id: 22, name: 'Екатеринбург (Исп)', region: 'Урал', logisticCostBox: 655, wbCoeff: 2.25, boxCount: 0, regionDemand: 5, isHub: true },
-    { id: 23, name: 'Екатеринбург (Пер)', region: 'Урал', logisticCostBox: 655, wbCoeff: 1.20, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 22, name: 'Екатеринбург (Исп)', region: 'Урал', logisticCostBox: 393, wbCoeff: 2.25, boxCount: 0, regionDemand: 5, isHub: true },
+    { id: 23, name: 'Екатеринбург (Пер)', region: 'Урал', logisticCostBox: 393, wbCoeff: 1.20, boxCount: 0, regionDemand: 2, isHub: false },
     // СФО
-    { id: 24, name: 'Новосибирск', region: 'СФО', logisticCostBox: 1050, wbCoeff: 4.45, boxCount: 0, regionDemand: 4, isHub: true },
+    { id: 24, name: 'Новосибирск', region: 'СФО', logisticCostBox: 630, wbCoeff: 4.45, boxCount: 0, regionDemand: 4, isHub: true },
   ];
 
   const [warehouses, setWarehouses] = useState(initialWarehouses);
@@ -374,41 +399,58 @@ const FboCalculator = () => {
   const calculateFFCost = (items, boxes) => {
       const itemsCost = items * (ffRates.processing + ffRates.specification);
       const boxesCost = boxes * (ffRates.boxAssembly + ffRates.boxMaterial);
-      return itemsCost + boxesCost;
+      let extraCost = 0;
+      if (extraPacking.enabled) {
+          extraCost = extraPacking.type === 'unit' ? extraPacking.value * items : extraPacking.value;
+      }
+      return itemsCost + boxesCost + extraCost;
   };
 
   // --- СЦЕНАРИИ ---
   const clientScenario = (() => {
-    if (clientSettings.selectedWhIds.length === 0) return { wbLogisticsUnit: 0, ffUnit: 0, totalCost: 0, locIndex: 1.60, deliveryToWhCost: 0, whNames: 'Нет складов' };
+    if (clientSettings.selectedWhIds.length === 0) return { wbLogisticsUnit: 0, ffUnit: 0, totalCost: 0, locIndex: 1.60, deliveryToWhCost: 0, whNames: 'Нет складов', irpSurcharge: 0 };
     const selectedWhs = warehouses.filter(w => clientSettings.selectedWhIds.includes(w.id));
     const totalSelDemand = selectedWhs.reduce((sum, w) => sum + w.regionDemand, 0);
     let weightedCoeff = 0, weightedLogisticCost = 0;
     if (totalSelDemand > 0) {
-        selectedWhs.forEach(w => { const share = w.regionDemand / totalSelDemand; weightedCoeff += w.wbCoeff * share; weightedLogisticCost += w.logisticCostBox * share; });
-    } else { weightedCoeff = selectedWhs.reduce((s,w)=>s+w.wbCoeff,0)/selectedWhs.length; weightedLogisticCost = selectedWhs.reduce((s,w)=>s+w.logisticCostBox,0)/selectedWhs.length; }
+        selectedWhs.forEach(w => { const share = w.regionDemand / totalSelDemand; weightedCoeff += Number(w.wbCoeff) * share; weightedLogisticCost += w.logisticCostBox * share; });
+    } else { weightedCoeff = selectedWhs.reduce((s,w)=>s+Number(w.wbCoeff),0)/selectedWhs.length; weightedLogisticCost = selectedWhs.reduce((s,w)=>s+w.logisticCostBox,0)/selectedWhs.length; }
 
     const locIndex = clientSettings.locIndex;
-    const wbCostUnit = baseWbLogistics * weightedCoeff * locIndex;
+    const krp = getKrpPercent(locIndex);
+    const irpUnit = product.price * krp;
+
+    const wbCostUnit = (baseWbLogistics * weightedCoeff * locIndex) + irpUnit;
     const deliveryToWhTotal = currentTableBoxes * weightedLogisticCost;
     const ffTotal = calculateFFCost(totalItems, currentTableBoxes) + deliveryToWhTotal;
     const whNames = selectedWhs.length > 3 ? `${selectedWhs.length} складов` : selectedWhs.map(w => w.name).join(', ');
-    return { wbLogisticsUnit: wbCostUnit, ffUnit: ffTotal / totalItems, totalCost: (wbCostUnit * totalItems) + ffTotal, locIndex: locIndex, deliveryToWhCost: deliveryToWhTotal, whNames: whNames };
+    
+    const taxUnit = product.price * 0.07; // Assuming 7% tax
+    const netProfitUnit = product.price - product.cost - taxUnit - wbCostUnit - (ffTotal / totalItems);
+    
+    return { wbLogisticsUnit: wbCostUnit, ffUnit: ffTotal / totalItems, totalCost: (wbCostUnit * totalItems) + ffTotal, locIndex: locIndex, deliveryToWhCost: deliveryToWhTotal, whNames: whNames, irpSurcharge: irpUnit * totalItems, netProfitUnit };
   })();
 
   const distributedScenario = (() => {
-    if (totalItems === 0) return { wbLogisticsUnit: 0, ffUnit: 0, totalCost: 0, locIndex: 0, deliveryToWhCost: 0 };
+    if (totalItems === 0) return { wbLogisticsUnit: 0, ffUnit: 0, totalCost: 0, locIndex: 0, deliveryToWhCost: 0, irpSurcharge: 0 };
     let weightedWbLogisticsSum = 0, totalDeliveryToWh = 0;
     const locIndex = 0.7; 
+    const irpUnit = 0; // Target is always >60% localization
+    
     warehouses.forEach(w => {
        if (w.boxCount > 0) {
            const itemsInWh = w.boxCount * unitsPerBox;
-           weightedWbLogisticsSum += (baseWbLogistics * w.wbCoeff * locIndex) * itemsInWh;
+           weightedWbLogisticsSum += (baseWbLogistics * Number(w.wbCoeff) * locIndex) * itemsInWh;
            totalDeliveryToWh += w.boxCount * w.logisticCostBox;
        }
     });
     const ffServicesAndMaterial = calculateFFCost(totalItems, currentTableBoxes);
     const totalFf = ffServicesAndMaterial + totalDeliveryToWh;
-    return { wbLogisticsUnit: weightedWbLogisticsSum / totalItems, ffUnit: totalFf / totalItems, totalCost: weightedWbLogisticsSum + totalFf, locIndex: locIndex, deliveryToWhCost: totalDeliveryToWh };
+    
+    const taxUnit = product.price * 0.07;
+    const netProfitUnit = product.price - product.cost - taxUnit - ((weightedWbLogisticsSum / totalItems) + irpUnit) - (totalFf / totalItems);
+
+    return { wbLogisticsUnit: (weightedWbLogisticsSum / totalItems) + irpUnit, ffUnit: totalFf / totalItems, totalCost: weightedWbLogisticsSum + totalFf, locIndex: locIndex, deliveryToWhCost: totalDeliveryToWh, irpSurcharge: 0, netProfitUnit };
   })();
 
   const profit = clientScenario.totalCost - distributedScenario.totalCost;
@@ -424,7 +466,7 @@ const FboCalculator = () => {
               <h1 className={`text-2xl font-bold flex items-center gap-2 ${t.headerTitle}`}>
                   <Truck className={`${t.iconPrimary} hidden md:inline-block`} /> Калькулятор выгоды Wildberries FBO
               </h1>
-              <p className={`text-sm ${t.subtitleText}`}>Управление Индексом Локализации и логистикой</p>
+              <p className={`text-sm ${t.subtitleText}`}>Управление Индексом Локализации и ИРП</p>
           </div>
           <button onClick={resetToCentral} className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center gap-2 ${t.buttonBase}`}>
               <RotateCcw size={16} /> Сброс
@@ -461,18 +503,37 @@ const FboCalculator = () => {
                   </div>
                   <div className={`pt-2 border-t ${t.cardBorder}`}>
                       <div className="flex justify-between mb-1">
-                          <label className={`text-[10px] uppercase font-bold ${t.subtitleText}`}>Индекс Локализации</label>
+                          <label className={`text-[10px] uppercase font-bold ${t.subtitleText}`}>Индекс Локализации (КРП)</label>
                           <span className={`text-xs font-bold px-2 rounded ${isDark ? 'text-orange-400 bg-orange-900/30' : 'text-orange-600 bg-orange-50'}`}>{clientSettings.locIndex}</span>
                       </div>
                       <input type="range" min="0.5" max="2.0" step="0.05" value={clientSettings.locIndex} onChange={(e) => handleManualILChange(e.target.value)} className={`w-full accent-orange-500 h-2 rounded-lg appearance-none cursor-pointer ${isDark ? 'bg-gray-700' : 'bg-slate-200'}`} />
-                      <div className={`flex justify-between text-[9px] mt-1 ${t.subtitleText}`}><span>0.5 (Идеал)</span><span>1.0 (Норма)</span><span>2.0 (Дорого)</span></div>
+                      <div className={`flex justify-between text-[9px] mt-1 ${t.subtitleText}`}><span>0.5 (Идеал)</span><span>1.0 (60%+)</span><span>2.0 (0%)</span></div>
                   </div>
               </div>
           </div>
 
           {/* Product */}
           <div className={`${t.cardBg} p-4 rounded-xl shadow-sm border ${t.cardBorder} transition-opacity ${manualLiterage !== null ? 'opacity-90' : ''}`}>
-             <h3 className={`font-semibold text-sm mb-3 flex items-center gap-2 ${t.headerTitle}`}><Box size={16} className={t.iconPrimary} /> Товар (Габариты)</h3>
+             <h3 className={`font-semibold text-sm mb-3 flex items-center gap-2 ${t.headerTitle}`}><Box size={16} className={t.iconPrimary} /> Товар и экономика</h3>
+             
+             {/* New: Price and Cost inputs */}
+             <div className="flex gap-3 mb-4">
+                <div className="flex-1">
+                    <label className={`text-[10px] uppercase font-bold mb-1 block ${t.subtitleText}`}>Цена (до скидок)</label>
+                    <div className="relative">
+                        <div className={`absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold ${t.subtitleText}`}>₽</div>
+                        <input type="number" value={product.price || ''} onChange={(e) => setProduct({...product, price: Number(e.target.value)})} className={`w-full pl-6 p-1.5 border rounded text-sm font-bold outline-none ${t.inputBg} ${t.inputBorder} ${t.inputText} ${t.focusRing}`} />
+                    </div>
+                </div>
+                <div className="flex-1">
+                    <label className={`text-[10px] uppercase font-bold mb-1 block ${t.subtitleText}`}>Себестоимость</label>
+                    <div className="relative">
+                        <div className={`absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold ${t.subtitleText}`}>₽</div>
+                        <input type="number" value={product.cost || ''} onChange={(e) => setProduct({...product, cost: Number(e.target.value)})} className={`w-full pl-6 p-1.5 border rounded text-sm outline-none ${t.inputBg} ${t.inputBorder} ${t.inputText} ${t.focusRing}`} />
+                    </div>
+                </div>
+             </div>
+
              <div className={`flex items-center gap-2 mb-2 ${manualLiterage !== null ? 'opacity-40 pointer-events-none' : ''}`}>
                 {['length', 'width', 'height'].map(dim => (
                     <div key={dim} className="flex-1">
@@ -500,6 +561,27 @@ const FboCalculator = () => {
                         {manualLiterage !== null && <button onClick={() => setManualLiterage(null)} className="text-indigo-400 hover:text-red-500"><X size={14}/></button>}
                     </div>
                 </div>
+             </div>
+
+             {/* EXTRA PACKAGING */}
+             <div className="mt-4 pt-3 border-t border-dashed border-slate-200 dark:border-gray-700">
+                <label className="flex items-center gap-2 cursor-pointer mb-2">
+                    <input type="checkbox" checked={extraPacking.enabled} onChange={e => setExtraPacking({...extraPacking, enabled: e.target.checked})} className="rounded text-indigo-600 focus:ring-indigo-500 h-3 w-3" />
+                    <span className={`text-[11px] font-semibold uppercase ${t.subtitleText}`}>Дополнительная упаковка</span>
+                </label>
+                
+                {extraPacking.enabled && (
+                    <div className={`flex items-center gap-2 p-2 rounded-lg ${isDark ? 'bg-indigo-900/10' : 'bg-indigo-50/50'}`}>
+                        <div className="relative flex-1">
+                            <span className={`absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold ${t.iconPrimary}`}>₽</span>
+                            <input type="number" value={extraPacking.value || ''} onChange={e => setExtraPacking({...extraPacking, value: Number(e.target.value)})} className={`w-full pl-6 p-1 text-sm border rounded outline-none ${t.inputBg} ${t.inputBorder} ${t.inputText}`} placeholder="0" />
+                        </div>
+                        <div className="flex bg-white dark:bg-gray-800 rounded-md p-0.5 border dark:border-gray-700 shadow-sm">
+                            <button onClick={() => setExtraPacking({...extraPacking, type: 'unit'})} className={`px-2 py-1 text-[10px] rounded transition-all ${extraPacking.type === 'unit' ? 'bg-indigo-600 text-white shadow-sm' : `${t.subtitleText} hover:bg-slate-50 dark:hover:bg-gray-700`}`}>за шт.</button>
+                            <button onClick={() => setExtraPacking({...extraPacking, type: 'total'})} className={`px-2 py-1 text-[10px] rounded transition-all ${extraPacking.type === 'total' ? 'bg-indigo-600 text-white shadow-sm' : `${t.subtitleText} hover:bg-slate-50 dark:hover:bg-gray-700`}`}>партия</button>
+                        </div>
+                    </div>
+                )}
              </div>
           </div>
 
@@ -689,8 +771,24 @@ const FboCalculator = () => {
                               <div>Логистика Wildberries</div>
                               <div className={`text-xs ${t.subtitleText}`}>Тариф × Коэф. склада × Индекс Лок.</div>
                           </td>
-                          <td className="px-5 py-3 text-right font-medium">{Math.round(clientScenario.wbLogisticsUnit * totalItems).toLocaleString()} ₽</td>
+                          <td className="px-5 py-3 text-right font-medium">{Math.round((clientScenario.wbLogisticsUnit - (clientScenario.irpSurcharge/totalItems)) * totalItems).toLocaleString()} ₽</td>
                           <td className={`px-5 py-3 text-right font-bold ${isDark ? 'text-green-400' : 'text-green-600'} ${t.ffHighlightBg}`}>{Math.round(distributedScenario.wbLogisticsUnit * totalItems).toLocaleString()} ₽</td>
+                      </tr>
+                      <tr>
+                          <td className="px-5 py-3">
+                              <div className="flex items-center gap-1">
+                                  Доплата ИРП (от цены товара)
+                                  <div className="group relative">
+                                      <div className={`text-[9px] cursor-help border rounded-full w-3 h-3 flex items-center justify-center ${t.subtitleText}`}>?</div>
+                                      <div className={`absolute bottom-full left-0 mb-2 w-48 p-2 rounded shadow-lg text-[10px] leading-tight hidden group-hover:block z-50 ${isDark ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} border ${t.cardBorder}`}>
+                                          Новый штраф WB с 23 марта. Берется % от цены товара, если локализация менее 60%.
+                                      </div>
+                                  </div>
+                              </div>
+                              <div className={`text-xs ${t.subtitleText}`}>Штраф за плохое распределение</div>
+                          </td>
+                          <td className={`px-5 py-3 text-right font-medium ${clientScenario.irpSurcharge > 0 ? 'text-red-500' : ''}`}>{Math.round(clientScenario.irpSurcharge).toLocaleString()} ₽</td>
+                          <td className={`px-5 py-3 text-right font-bold text-green-500 ${t.ffHighlightBg}`}>0 ₽</td>
                       </tr>
                       <tr>
                           <td className="px-5 py-3">
@@ -699,6 +797,14 @@ const FboCalculator = () => {
                           </td>
                           <td className="px-5 py-3 text-right">{Math.round(clientScenario.deliveryToWhCost).toLocaleString()} ₽</td>
                           <td className={`px-5 py-3 text-right font-bold ${t.ffHighlightText} ${t.ffHighlightBg}`}>{Math.round(distributedScenario.deliveryToWhCost).toLocaleString()} ₽</td>
+                      </tr>
+                      <tr className="opacity-60">
+                          <td className="px-5 py-3">
+                              <div>Обратная логистика (возврат)</div>
+                              <div className={`text-xs ${t.subtitleText}`}>С 20 марта зависит от литража</div>
+                          </td>
+                          <td className="px-5 py-3 text-right text-xs">{Math.round(calculateReturnLogistics(currentLiterage))} ₽ / шт</td>
+                          <td className={`px-5 py-3 text-right text-xs ${t.ffHighlightBg}`}>{Math.round(calculateReturnLogistics(currentLiterage))} ₽ / шт</td>
                       </tr>
                        <tr>
                           <td className="px-5 py-3">
@@ -712,6 +818,11 @@ const FboCalculator = () => {
                           <td className="px-5 py-3">ИТОГО</td>
                           <td className="px-5 py-3 text-right">{Math.round(clientScenario.totalCost).toLocaleString()} ₽</td>
                           <td className={`px-5 py-3 text-right ${t.ffHighlightText} ${isDark ? 'bg-indigo-900/20' : 'bg-indigo-50'}`}>{Math.round(distributedScenario.totalCost).toLocaleString()} ₽</td>
+                      </tr>
+                      <tr className={`font-bold border-t-2 ${isDark ? 'border-emerald-900/50 bg-emerald-900/10' : 'border-emerald-100 bg-emerald-50/30'}`}>
+                          <td className="px-5 py-3 text-emerald-600">Чистая прибыль (на 1 шт.)</td>
+                          <td className="px-5 py-3 text-right text-emerald-600">{Math.round(clientScenario.netProfitUnit).toLocaleString()} ₽</td>
+                          <td className="px-5 py-3 text-right text-emerald-600 font-extrabold">{Math.round(distributedScenario.netProfitUnit).toLocaleString()} ₽</td>
                       </tr>
                   </tbody>
               </table>
