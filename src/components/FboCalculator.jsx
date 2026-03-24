@@ -107,6 +107,23 @@ const FboCalculator = () => {
     enabled: false, value: 0, type: 'unit' // 'unit' or 'total'
   });
 
+  const [isProMode, setIsProMode] = useState(false);
+  const [proSettings, setProSettings] = useState({
+    batchSize: 1000,
+    salesPerDay: 15,
+    categoryCommission: 25, // %
+    capitalRate: 25, // % annual ROI
+    wbAcceptanceCoeff: 1 // 1x, 5x, etc.
+  });
+
+  const CATEGORIES = [
+    { name: 'Одежда и обувь', commission: 34.5 },
+    { name: 'Косметика', commission: 22.5 },
+    { name: 'Электроника', commission: 12 },
+    { name: 'Дом и дача', commission: 25 },
+    { name: 'Бытовая химия', commission: 29.5 },
+  ];
+
   const [manualLiterage, setManualLiterage] = useState(null);
   const [manualUnitsPerBox, setManualUnitsPerBox] = useState(null);
 
@@ -133,7 +150,7 @@ const FboCalculator = () => {
 
   // --- 2. ТАРИФЫ ---
   const [ffRates, setFfRates] = useState({
-    processing: 15, specification: 3, boxAssembly: 45, boxMaterial: 55
+    processing: 15, specification: 3, boxAssembly: 45, boxMaterial: 55, storagePerLiter: 0.06
   });
 
   // --- 3. НАСТРОЙКИ КЛИЕНТА ---
@@ -266,30 +283,56 @@ const FboCalculator = () => {
   const handleTotalBoxesChange = (newTotal) => {
       const total = newTotal === '' ? 0 : Math.max(0, parseInt(newTotal) || 0);
       setManualTotalBoxes(total);
-      if (anchorMode === 'items' && total > 0 && displayTotalItems > 0) {
-          const newUnits = Math.ceil(displayTotalItems / total);
-          setManualUnitsPerBox(Math.max(1, newUnits));
-          const impliedLiterage = (96 * 0.95) / newUnits;
-          setManualLiterage(impliedLiterage);
-          if (manualTotalItems === null) setManualTotalItems(displayTotalItems);
-      } else { setManualTotalItems(null); }
+      
+      if (anchorMode === 'items') {
+          // Lock Items: update units per box
+          if (total > 0 && displayTotalItems > 0) {
+              const newUnits = Math.max(1, Math.round(displayTotalItems / total));
+              setManualUnitsPerBox(newUnits);
+          }
+      } else {
+          // Lock Units: update total items
+          const newItems = total * unitsPerBox;
+          setManualTotalItems(newItems);
+          if (isProMode) setProSettings(prev => ({...prev, batchSize: newItems}));
+      }
       distributeBoxes(total);
   };
+
   const handleTotalItemsChange = (newTotalItems) => {
       const items = newTotalItems === '' ? 0 : Math.max(0, parseInt(newTotalItems) || 0);
       setManualTotalItems(items);
-      const newBoxes = Math.ceil(items / unitsPerBox);
-      setManualTotalBoxes(newBoxes);
-      distributeBoxes(newBoxes);
+      if (isProMode) setProSettings(prev => ({...prev, batchSize: items}));
+      
+      if (anchorMode === 'units') {
+          // Lock Units: update box count
+          const newBoxes = Math.ceil(items / unitsPerBox);
+          setManualTotalBoxes(newBoxes);
+          distributeBoxes(newBoxes);
+      } else {
+          // Lock Items (current field): technically nothing happens, 
+          // but we usually want to adjust boxes to maintain units per box if possible
+          const newBoxes = Math.ceil(items / unitsPerBox);
+          setManualTotalBoxes(newBoxes);
+          distributeBoxes(newBoxes);
+      }
   };
+
   const handleUnitsPerBoxChange = (newVal) => {
       const newUnits = newVal === '' ? 1 : Math.max(1, parseInt(newVal) || 1);
       setManualUnitsPerBox(newUnits);
-      if (anchorMode === 'items' && totalItems > 0) {
-          const newBoxes = Math.ceil(totalItems / newUnits);
+      
+      if (anchorMode === 'items') {
+          // Lock Items: update box count
+          const newBoxes = Math.ceil(displayTotalItems / newUnits);
           setManualTotalBoxes(newBoxes);
           distributeBoxes(newBoxes);
-      } else { setManualTotalItems(null); }
+      } else {
+          // Lock Units: update total items
+          const newItems = displayTotalBoxes * newUnits;
+          setManualTotalItems(newItems);
+          if (isProMode) setProSettings(prev => ({...prev, batchSize: newItems}));
+      }
   };
   const handleLiterageChange = (val) => {
       const num = parseFloat(val);
@@ -408,7 +451,8 @@ const FboCalculator = () => {
 
   // --- СЦЕНАРИИ ---
   const clientScenario = (() => {
-    if (clientSettings.selectedWhIds.length === 0) return { wbLogisticsUnit: 0, ffUnit: 0, totalCost: 0, locIndex: 1.60, deliveryToWhCost: 0, whNames: 'Нет складов', irpSurcharge: 0 };
+    if (clientSettings.selectedWhIds.length === 0) return { wbLogisticsUnit: 0, ffUnit: 0, totalCost: 0, locIndex: 1.60, deliveryToWhCost: 0, whNames: 'Нет складов', irpSurcharge: 0, netProfitUnit: 0, storageTotal: 0, capitalLoss: 0 };
+    
     const selectedWhs = warehouses.filter(w => clientSettings.selectedWhIds.includes(w.id));
     const totalSelDemand = selectedWhs.reduce((sum, w) => sum + w.regionDemand, 0);
     let weightedCoeff = 0, weightedLogisticCost = 0;
@@ -421,36 +465,74 @@ const FboCalculator = () => {
     const irpUnit = product.price * krp;
 
     const wbCostUnit = (baseWbLogistics * weightedCoeff * locIndex) + irpUnit;
-    const deliveryToWhTotal = currentTableBoxes * weightedLogisticCost;
-    const ffTotal = calculateFFCost(totalItems, currentTableBoxes) + deliveryToWhTotal;
-    const whNames = selectedWhs.length > 3 ? `${selectedWhs.length} складов` : selectedWhs.map(w => w.name).join(', ');
+    const deliveryToWhTotal = (totalItems / unitsPerBox) * weightedLogisticCost;
+    const ffTotal = calculateFFCost(totalItems, (totalItems / unitsPerBox)) + deliveryToWhTotal;
     
-    const taxUnit = product.price * 0.07; // Assuming 7% tax
-    const netProfitUnit = product.price - product.cost - taxUnit - wbCostUnit - (ffTotal / totalItems);
+    // PRO LOGIC: Storage and Capital
+    let storageTotal = 0, capitalLoss = 0;
+    const taxUnit = product.price * 0.07;
+    const commUnit = product.price * (proSettings.categoryCommission / 100);
+
+    if (isProMode) {
+        const daysToSell = totalItems / proSettings.salesPerDay;
+        const avgItems = totalItems / 2;
+        // WB Storage: 0.10 RUB per liter per day * warehouse coeff
+        storageTotal = avgItems * currentLiterage * 0.10 * weightedCoeff * daysToSell;
+        // Capital: Cost * AnnualRate / 365 * days
+        capitalLoss = (avgItems * product.cost) * (proSettings.capitalRate / 100 / 365) * daysToSell;
+    }
+
+    const totalBatchCost = (wbCostUnit * totalItems) + ffTotal + storageTotal + capitalLoss + (commUnit * totalItems) + (taxUnit * totalItems);
+    const netProfitUnit = product.price - (totalBatchCost / totalItems) - product.cost;
     
-    return { wbLogisticsUnit: wbCostUnit, ffUnit: ffTotal / totalItems, totalCost: (wbCostUnit * totalItems) + ffTotal, locIndex: locIndex, deliveryToWhCost: deliveryToWhTotal, whNames: whNames, irpSurcharge: irpUnit * totalItems, netProfitUnit };
+    return { wbLogisticsUnit: wbCostUnit, ffUnit: ffTotal / totalItems, totalCost: totalBatchCost, locIndex: locIndex, deliveryToWhCost: deliveryToWhTotal, whNames: selectedWhs.map(w => w.name).join(', '), irpSurcharge: irpUnit * totalItems, netProfitUnit, storageTotal, capitalLoss };
   })();
 
   const distributedScenario = (() => {
-    if (totalItems === 0) return { wbLogisticsUnit: 0, ffUnit: 0, totalCost: 0, locIndex: 0, deliveryToWhCost: 0, irpSurcharge: 0 };
-    let weightedWbLogisticsSum = 0, totalDeliveryToWh = 0;
+    if (totalItems === 0) return { wbLogisticsUnit: 0, ffUnit: 0, totalCost: 0, locIndex: 0, deliveryToWhCost: 0, irpSurcharge: 0, netProfitUnit: 0, storageTotal: 0, capitalLoss: 0 };
+    
+    let weightedWbLogisticsSum = 0, totalDeliveryToWh = 0, avgWbCoeff = 0, whCount = 0;
     const locIndex = 0.7; 
-    const irpUnit = 0; // Target is always >60% localization
+    const irpUnit = 0; 
     
     warehouses.forEach(w => {
        if (w.boxCount > 0) {
            const itemsInWh = w.boxCount * unitsPerBox;
            weightedWbLogisticsSum += (baseWbLogistics * Number(w.wbCoeff) * locIndex) * itemsInWh;
            totalDeliveryToWh += w.boxCount * w.logisticCostBox;
+           avgWbCoeff += Number(w.wbCoeff);
+           whCount++;
        }
     });
-    const ffServicesAndMaterial = calculateFFCost(totalItems, currentTableBoxes);
+    
+    const finalAvgWbCoeff = whCount > 0 ? avgWbCoeff / whCount : 1;
+    const ffServicesAndMaterial = calculateFFCost(totalItems, (totalItems / unitsPerBox));
     const totalFf = ffServicesAndMaterial + totalDeliveryToWh;
     
+    // PRO LOGIC: Sub-sorting (Low WB storage, higher FF storage)
+    let storageTotal = 0, capitalLoss = 0;
     const taxUnit = product.price * 0.07;
-    const netProfitUnit = product.price - product.cost - taxUnit - ((weightedWbLogisticsSum / totalItems) + irpUnit) - (totalFf / totalItems);
+    const commUnit = product.price * (proSettings.categoryCommission / 100);
 
-    return { wbLogisticsUnit: (weightedWbLogisticsSum / totalItems) + irpUnit, ffUnit: totalFf / totalItems, totalCost: weightedWbLogisticsSum + totalFf, locIndex: locIndex, deliveryToWhCost: totalDeliveryToWh, irpSurcharge: 0, netProfitUnit };
+    if (isProMode) {
+        const daysToSell = totalItems / proSettings.salesPerDay;
+        // JIT Model:
+        // Average items on WB = 7 days of sales (replenished to 14 days every 14 days)
+        const avgItemsOnWb = proSettings.salesPerDay * 7;
+        const wbStorage = avgItemsOnWb * currentLiterage * 0.10 * finalAvgWbCoeff * daysToSell;
+        
+        // Average items on our FF = (TotalItems - avgItemsOnWb) / 2
+        const avgItemsOnFf = (totalItems / 2) - avgItemsOnWb;
+        const ffStorage = Math.max(0, avgItemsOnFf) * currentLiterage * ffRates.storagePerLiter * daysToSell; 
+        
+        storageTotal = wbStorage + ffStorage;
+        capitalLoss = (totalItems / 2 * product.cost) * (proSettings.capitalRate / 100 / 365) * (daysToSell * 0.6); // 40% better cashflow due to sub-sorting
+    }
+
+    const totalBatchCost = weightedWbLogisticsSum + totalFf + storageTotal + capitalLoss + (commUnit * totalItems) + (taxUnit * totalItems);
+    const netProfitUnit = product.price - (totalBatchCost / totalItems) - product.cost;
+
+    return { wbLogisticsUnit: (weightedWbLogisticsSum / totalItems) + irpUnit, ffUnit: totalFf / totalItems, totalCost: totalBatchCost, locIndex: locIndex, deliveryToWhCost: totalDeliveryToWh, irpSurcharge: 0, netProfitUnit, storageTotal, capitalLoss };
   })();
 
   const profit = clientScenario.totalCost - distributedScenario.totalCost;
@@ -468,10 +550,50 @@ const FboCalculator = () => {
               </h1>
               <p className={`text-sm ${t.subtitleText}`}>Управление Индексом Локализации и ИРП</p>
           </div>
-          <button onClick={resetToCentral} className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center gap-2 ${t.buttonBase}`}>
-              <RotateCcw size={16} /> Сброс
-          </button>
+          <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className={`text-[10px] uppercase font-bold transition-colors ${isProMode ? 'text-indigo-500' : 'text-slate-400'}`}>Режим PRO</div>
+                  <div onClick={() => setIsProMode(!isProMode)} className={`w-10 h-5 rounded-full relative transition-colors ${isProMode ? 'bg-indigo-600' : 'bg-slate-300'}`}>
+                      <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isProMode ? 'left-6' : 'left-1'}`}></div>
+                  </div>
+              </label>
+              <button onClick={resetToCentral} className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center gap-2 ${t.buttonBase}`}>
+                  <RotateCcw size={16} /> Сброс
+              </button>
+          </div>
       </div>
+
+      {isProMode && (
+          <div className={`mb-6 p-4 rounded-xl border-2 border-dashed ${isDark ? 'bg-indigo-900/10 border-indigo-900/30' : 'bg-indigo-50 border-indigo-100'} animate-in fade-in slide-in-from-top-4`}>
+              <h3 className="text-xs font-bold uppercase text-indigo-600 mb-3 flex items-center gap-2"><Zap size={14}/> Симуляция стратегии продаж</h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div>
+                      <label className={`text-[10px] uppercase font-bold mb-1 block ${t.subtitleText}`}>Размер партии</label>
+                      <input type="number" value={proSettings.batchSize} onChange={e => setProSettings({...proSettings, batchSize: +e.target.value})} className={`w-full p-1.5 border rounded text-sm font-bold ${t.inputBg} ${t.inputBorder} ${t.inputText}`} />
+                  </div>
+                  <div>
+                      <label className={`text-[10px] uppercase font-bold mb-1 block ${t.subtitleText}`}>Продаж в день</label>
+                      <input type="number" value={proSettings.salesPerDay} onChange={e => setProSettings({...proSettings, salesPerDay: +e.target.value})} className={`w-full p-1.5 border rounded text-sm font-bold ${t.inputBg} ${t.inputBorder} ${t.inputText}`} />
+                  </div>
+                  <div>
+                      <label className={`text-[10px] uppercase font-bold mb-1 block ${t.subtitleText}`}>Категория (Комиссия)</label>
+                      <select value={proSettings.categoryCommission} onChange={e => setProSettings({...proSettings, categoryCommission: +e.target.value})} className={`w-full p-1.5 border rounded text-sm ${t.inputBg} ${t.inputBorder} ${t.inputText}`}>
+                          {CATEGORIES.map(c => <option key={c.name} value={c.commission}>{c.name} ({c.commission}%)</option>)}
+                      </select>
+                  </div>
+                  <div>
+                      <label className={`text-[10px] uppercase font-bold mb-1 block ${t.subtitleText}`}>Ставка капитала (% год)</label>
+                      <input type="number" value={proSettings.capitalRate} onChange={e => setProSettings({...proSettings, capitalRate: +e.target.value})} className={`w-full p-1.5 border rounded text-sm ${t.inputBg} ${t.inputBorder} ${t.inputText}`} />
+                  </div>
+                  <div className="flex items-end">
+                      <div className={`p-2 rounded border w-full text-center ${isDark ? 'bg-black/20' : 'bg-white'}`}>
+                          <div className={`text-[9px] uppercase ${t.subtitleText}`}>Оборачиваемость</div>
+                          <div className="text-sm font-bold text-indigo-600">{Math.round(proSettings.batchSize / proSettings.salesPerDay)} дней</div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* LEFT COL */}
@@ -698,6 +820,12 @@ const FboCalculator = () => {
                                 <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Цена короба</span> <input type="number" className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxMaterial || ''} onChange={e => setFfRates({...ffRates, boxMaterial: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" /></div>
                              </div>
                         </div>
+                        <div>
+                             <div className="text-[10px] font-bold text-indigo-400 uppercase mb-1">Хранение (₽/л в сутки)</div>
+                             <div className="space-y-1">
+                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Наш склад (ФФ)</span> <input type="number" step="0.01" className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.storagePerLiter || ''} onChange={e => setFfRates({...ffRates, storagePerLiter: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" /></div>
+                             </div>
+                        </div>
                     </div>
                 </details>
             </div>
@@ -739,9 +867,9 @@ const FboCalculator = () => {
                       <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }} barSize={30}>
                           <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={t.chartGrid} />
                           <XAxis type="number" hide />
-                          <YAxis type="category" dataKey="name" width={140} tick={{fontSize: 11, fontWeight: 600, fill: t.isDark ? '#9ca3af' : '#334155'}} />
+                          <YAxis type="category" dataKey="name" width={140} tick={{fontSize: 11, fontWeight: 600, fill: isDark ? '#9ca3af' : '#334155'}} />
                           <Tooltip contentStyle={{ backgroundColor: t.chartTooltipBg, border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`, borderRadius: '0.5rem', color: t.chartTooltipText }} />
-                          <Legend wrapperStyle={{fontSize: '12px', color: t.isDark ? '#9ca3af' : '#1f2937'}}/>
+                          <Legend wrapperStyle={{fontSize: '12px', color: isDark ? '#9ca3af' : '#1f2937'}}/>
                           <Bar name="Фулфилмент" dataKey="Фулфилмент" stackId="a" fill={t.ffBarColor} radius={[0, 0, 0, 0]} />
                           <Bar name="Тариф Wildberries" dataKey="Логистика ВБ" stackId="a" fill={t.wbBarColor} radius={[0, 4, 4, 0]} />
                       </BarChart>
@@ -814,8 +942,38 @@ const FboCalculator = () => {
                           <td className="px-5 py-3 text-right">{Math.round(calculateFFCost(totalItems, currentTableBoxes)).toLocaleString()} ₽</td>
                           <td className={`px-5 py-3 text-right ${t.ffHighlightBg}`}>{Math.round(calculateFFCost(totalItems, currentTableBoxes)).toLocaleString()} ₽</td>
                       </tr>
+
+                      {isProMode && (
+                          <>
+                              <tr className="bg-orange-500/5">
+                                  <td className="px-5 py-3">
+                                      <div className="font-semibold text-orange-600">Хранение на Wildberries (за период)</div>
+                                      <div className={`text-xs ${t.subtitleText}`}>Накопленное хранение за весь срок продажи партии</div>
+                                  </td>
+                                  <td className="px-5 py-3 text-right text-orange-600 font-medium">{Math.round(clientScenario.storageTotal).toLocaleString()} ₽</td>
+                                  <td className={`px-5 py-3 text-right text-green-600 font-bold ${t.ffHighlightBg}`}>{Math.round(distributedScenario.storageTotal).toLocaleString()} ₽</td>
+                              </tr>
+                              <tr className="bg-amber-500/5">
+                                  <td className="px-5 py-3">
+                                      <div className="font-semibold text-amber-600">Заморозка капитала</div>
+                                      <div className={`text-xs ${t.subtitleText}`}>Упущенная выгода (ROI {proSettings.capitalRate}%)</div>
+                                  </td>
+                                  <td className="px-5 py-3 text-right text-amber-600 font-medium">{Math.round(clientScenario.capitalLoss).toLocaleString()} ₽</td>
+                                  <td className={`px-5 py-3 text-right text-green-600 font-bold ${t.ffHighlightBg}`}>{Math.round(distributedScenario.capitalLoss).toLocaleString()} ₽</td>
+                              </tr>
+                              <tr>
+                                  <td className="px-5 py-3">
+                                      <div>Комиссия WB ({proSettings.categoryCommission}%)</div>
+                                      <div className={`text-xs ${t.subtitleText}`}>Процент маркетплейса с продаж партии</div>
+                                  </td>
+                                  <td className="px-5 py-3 text-right">{Math.round(product.price * (proSettings.categoryCommission/100) * totalItems).toLocaleString()} ₽</td>
+                                  <td className={`px-5 py-3 text-right ${t.ffHighlightBg}`}>{Math.round(product.price * (proSettings.categoryCommission/100) * totalItems).toLocaleString()} ₽</td>
+                              </tr>
+                          </>
+                      )}
+
                       <tr className={`font-bold ${t.tableHeaderBg}`}>
-                          <td className="px-5 py-3">ИТОГО</td>
+                          <td className="px-5 py-3">ИТОГО РАСХОДОВ</td>
                           <td className="px-5 py-3 text-right">{Math.round(clientScenario.totalCost).toLocaleString()} ₽</td>
                           <td className={`px-5 py-3 text-right ${t.ffHighlightText} ${isDark ? 'bg-indigo-900/20' : 'bg-indigo-50'}`}>{Math.round(distributedScenario.totalCost).toLocaleString()} ₽</td>
                       </tr>
