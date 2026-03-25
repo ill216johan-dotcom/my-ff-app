@@ -147,36 +147,36 @@ const FboCalculator = () => {
   // --- 4. СКЛАДЫ ---
   const initialWarehouses = [
     // ЦФО
-    { id: 1, name: 'Коледино', region: 'ЦФО', logisticCostBox: 132, wbCoeff: 2.00, boxCount: 0, regionDemand: 25, isHub: true },
-    { id: 2, name: 'Подольск', region: 'ЦФО', logisticCostBox: 132, wbCoeff: 2.00, boxCount: 0, regionDemand: 8, isHub: true },
-    { id: 3, name: 'Электросталь', region: 'ЦФО', logisticCostBox: 156, wbCoeff: 1.40, boxCount: 0, regionDemand: 10, isHub: true },
-    { id: 4, name: 'Тула', region: 'ЦФО', logisticCostBox: 183, wbCoeff: 1.60, boxCount: 0, regionDemand: 4, isHub: false },
-    { id: 5, name: 'Рязань', region: 'ЦФО', logisticCostBox: 183, wbCoeff: 1.40, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 6, name: 'Белые столбы', region: 'ЦФО', logisticCostBox: 132, wbCoeff: 2.80, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 7, name: 'Котовск', region: 'ЦФО', logisticCostBox: 234, wbCoeff: 1.40, boxCount: 0, regionDemand: 1, isHub: false },
-    { id: 8, name: 'Владимир (Ворш.)', region: 'ЦФО', logisticCostBox: 168, wbCoeff: 1.30, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 9, name: 'Софьино', region: 'ЦФО', logisticCostBox: 156, wbCoeff: 0.95, boxCount: 0, regionDemand: 3, isHub: false },
-    { id: 10, name: 'Ярославль', region: 'ЦФО', logisticCostBox: 186, wbCoeff: 1.60, boxCount: 0, regionDemand: 2, isHub: false },
-    { id: 11, name: 'Воронеж', region: 'ЦФО', logisticCostBox: 240, wbCoeff: 0.75, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 1, name: 'Коледино', region: 'ЦФО', logisticCostBox: 220, wbCoeff: 2.00, boxCount: 0, regionDemand: 25, isHub: true },
+    { id: 2, name: 'Подольск', region: 'ЦФО', logisticCostBox: 220, wbCoeff: 2.00, boxCount: 0, regionDemand: 8, isHub: true },
+    { id: 3, name: 'Электросталь', region: 'ЦФО', logisticCostBox: 260, wbCoeff: 1.40, boxCount: 0, regionDemand: 10, isHub: true },
+    { id: 4, name: 'Тула', region: 'ЦФО', logisticCostBox: 305, wbCoeff: 1.60, boxCount: 0, regionDemand: 4, isHub: false },
+    { id: 5, name: 'Рязань', region: 'ЦФО', logisticCostBox: 305, wbCoeff: 1.40, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 6, name: 'Белые столбы', region: 'ЦФО', logisticCostBox: 220, wbCoeff: 2.80, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 7, name: 'Котовск', region: 'ЦФО', logisticCostBox: 390, wbCoeff: 1.40, boxCount: 0, regionDemand: 1, isHub: false },
+    { id: 8, name: 'Владимир (Ворш.)', region: 'ЦФО', logisticCostBox: 280, wbCoeff: 1.30, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 9, name: 'Софьино', region: 'ЦФО', logisticCostBox: 260, wbCoeff: 0.95, boxCount: 0, regionDemand: 3, isHub: false },
+    { id: 10, name: 'Ярославль', region: 'ЦФО', logisticCostBox: 310, wbCoeff: 1.60, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 11, name: 'Воронеж', region: 'ЦФО', logisticCostBox: 400, wbCoeff: 0.75, boxCount: 0, regionDemand: 2, isHub: false },
     // СЗФО
-    { id: 12, name: 'СПб (СЦ Шушары)', region: 'СЗФО', logisticCostBox: 258, wbCoeff: 2.20, boxCount: 0, regionDemand: 6, isHub: true },
-    { id: 13, name: 'СПб (Уткина)', region: 'СЗФО', logisticCostBox: 258, wbCoeff: 3.00, boxCount: 0, regionDemand: 3, isHub: false },
+    { id: 12, name: 'СПб (СЦ Шушары)', region: 'СЗФО', logisticCostBox: 430, wbCoeff: 2.20, boxCount: 0, regionDemand: 6, isHub: true },
+    { id: 13, name: 'СПб (Уткина)', region: 'СЗФО', logisticCostBox: 430, wbCoeff: 3.00, boxCount: 0, regionDemand: 3, isHub: false },
     // ПФО
-    { id: 14, name: 'Казань', region: 'ПФО', logisticCostBox: 267, wbCoeff: 2.20, boxCount: 0, regionDemand: 8, isHub: true },
-    { id: 15, name: 'Новосемейкино', region: 'ПФО', logisticCostBox: 300, wbCoeff: 0.85, boxCount: 0, regionDemand: 3, isHub: false },
-    { id: 16, name: 'Сарапул', region: 'ПФО', logisticCostBox: 354, wbCoeff: 0.85, boxCount: 0, regionDemand: 1, isHub: false },
-    { id: 17, name: 'Пенза', region: 'ПФО', logisticCostBox: 240, wbCoeff: 1.00, boxCount: 0, regionDemand: 1, isHub: false },
-    { id: 18, name: 'Нижний Новгород', region: 'ПФО', logisticCostBox: 273, wbCoeff: 1.00, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 14, name: 'Казань', region: 'ПФО', logisticCostBox: 445, wbCoeff: 2.20, boxCount: 0, regionDemand: 8, isHub: true },
+    { id: 15, name: 'Новосемейкино', region: 'ПФО', logisticCostBox: 500, wbCoeff: 0.85, boxCount: 0, regionDemand: 3, isHub: false },
+    { id: 16, name: 'Сарапул', region: 'ПФО', logisticCostBox: 590, wbCoeff: 0.85, boxCount: 0, regionDemand: 1, isHub: false },
+    { id: 17, name: 'Пенза', region: 'ПФО', logisticCostBox: 400, wbCoeff: 1.00, boxCount: 0, regionDemand: 1, isHub: false },
+    { id: 18, name: 'Нижний Новгород', region: 'ПФО', logisticCostBox: 455, wbCoeff: 1.00, boxCount: 0, regionDemand: 2, isHub: false },
     // ЮФО
-    { id: 19, name: 'Краснодар', region: 'ЮФО', logisticCostBox: 315, wbCoeff: 1.65, boxCount: 0, regionDemand: 8, isHub: true },
-    { id: 20, name: 'Волгоград', region: 'ЮФО', logisticCostBox: 354, wbCoeff: 1.10, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 19, name: 'Краснодар', region: 'ЮФО', logisticCostBox: 525, wbCoeff: 1.65, boxCount: 0, regionDemand: 8, isHub: true },
+    { id: 20, name: 'Волгоград', region: 'ЮФО', logisticCostBox: 590, wbCoeff: 1.10, boxCount: 0, regionDemand: 2, isHub: false },
     // СКФО
-    { id: 21, name: 'Невинномысск', region: 'СКФО', logisticCostBox: 342, wbCoeff: 1.05, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 21, name: 'Невинномысск', region: 'СКФО', logisticCostBox: 570, wbCoeff: 1.05, boxCount: 0, regionDemand: 2, isHub: false },
     // Урал
-    { id: 22, name: 'Екатеринбург (Исп)', region: 'Урал', logisticCostBox: 393, wbCoeff: 2.25, boxCount: 0, regionDemand: 5, isHub: true },
-    { id: 23, name: 'Екатеринбург (Пер)', region: 'Урал', logisticCostBox: 393, wbCoeff: 1.20, boxCount: 0, regionDemand: 2, isHub: false },
+    { id: 22, name: 'Екатеринбург (Исп)', region: 'Урал', logisticCostBox: 655, wbCoeff: 2.25, boxCount: 0, regionDemand: 5, isHub: true },
+    { id: 23, name: 'Екатеринбург (Пер)', region: 'Урал', logisticCostBox: 655, wbCoeff: 1.20, boxCount: 0, regionDemand: 2, isHub: false },
     // СФО
-    { id: 24, name: 'Новосибирск', region: 'СФО', logisticCostBox: 630, wbCoeff: 4.45, boxCount: 0, regionDemand: 4, isHub: true },
+    { id: 24, name: 'Новосибирск', region: 'СФО', logisticCostBox: 1050, wbCoeff: 4.45, boxCount: 0, regionDemand: 4, isHub: true },
   ];
 
   const [warehouses, setWarehouses] = useState(initialWarehouses);
@@ -434,7 +434,7 @@ const FboCalculator = () => {
   const distributedScenario = (() => {
     if (totalItems === 0) return { wbLogisticsUnit: 0, ffUnit: 0, totalCost: 0, locIndex: 0, deliveryToWhCost: 0, irpSurcharge: 0 };
     let weightedWbLogisticsSum = 0, totalDeliveryToWh = 0;
-    const locIndex = 0.7; 
+    const locIndex = 0.8;
     const irpUnit = 0; // Target is always >60% localization
     
     warehouses.forEach(w => {
@@ -711,7 +711,7 @@ const FboCalculator = () => {
                   <div className="relative z-10">
                       <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${t.subtitleText}`}>Выгода за партию</div>
                       <div className={`text-2xl font-bold ${profit >= 0 ? t.profitText : t.lossText}`}>{profit > 0 ? '+' : ''}{Math.round(profit).toLocaleString()} ₽</div>
-                      <div className={`text-xs mt-1 opacity-80 leading-tight ${t.subtitleText}`}>Улучшение Индекса локализации до <span className="font-bold">0.7</span> + экономия на коэф. складов</div>
+                      <div className={`text-xs mt-1 opacity-80 leading-tight ${t.subtitleText}`}>Улучшение Индекса локализации до <span className="font-bold">0.8</span> + экономия на коэф. складов</div>
                   </div>
               </div>
               <div className={`p-4 rounded-xl border ${t.cardBg} ${t.cardBorder}`}>
@@ -761,7 +761,7 @@ const FboCalculator = () => {
                           </th>
                           <th className={`px-5 py-3 text-right ${t.ffHighlightText} ${isDark ? 'bg-indigo-900/10' : 'bg-indigo-50/50'}`}>
                               <div>Ваше распределение</div>
-                              <div className="text-[9px] font-normal opacity-80">Индекс 0.7, вся сеть</div>
+                              <div className="text-[9px] font-normal opacity-80">Индекс 0.8, вся сеть</div>
                           </th>
                       </tr>
                   </thead>
