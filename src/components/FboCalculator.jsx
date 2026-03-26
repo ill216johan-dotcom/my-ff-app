@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Truck, Box, DollarSign, RotateCcw, Map, Settings, CheckSquare, Square, Zap, RefreshCw, X, Lock, Unlock, Search } from 'lucide-react';
+import { Truck, Box, DollarSign, RotateCcw, Map, Settings, CheckSquare, Square, Zap, RefreshCw, X, Lock, Unlock, Search, Package } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 import CalculatorLayout from './CalculatorLayout.jsx';
@@ -37,6 +37,17 @@ const FboCalculator = () => {
   // Sync with CalculatorLayout's theme by detecting dark class on document
   const [isDark, setIsDark] = useState(false);
 
+  // --- PRO MODE STATE ---
+  const [extraPacking, setExtraPacking] = useState({
+    enabled: false, value: 0, type: 'unit' // 'unit' or 'total'
+  });
+
+  const [proMode, setProMode] = useState(false);
+  const [useCustomFfRates, setUseCustomFfRates] = useState(false);
+  const [clientFfRates, setClientFfRates] = useState({
+    processing: 15, specification: 3, boxAssembly: 45, boxMaterial: 55
+  });
+
   useEffect(() => {
     const checkTheme = () => setIsDark(document.documentElement.classList.contains('dark'));
     checkTheme();
@@ -44,6 +55,13 @@ const FboCalculator = () => {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
   }, []);
+
+  // Auto-enable extraPacking when proMode is enabled
+  useEffect(() => {
+    if (proMode && !extraPacking.enabled) {
+      setExtraPacking(prev => ({ ...prev, enabled: true }));
+    }
+  }, [proMode]);
 
   // --- Theme Configuration ---
   const t = useMemo(() => {
@@ -98,32 +116,30 @@ const FboCalculator = () => {
 
   // --- 1. ПАРАМЕТРЫ ТОВАРА (Defaults: 1000 units, 10x10x10) ---
   const [product, setProduct] = useState({
-    price: 1500, cost: 500, 
-    width: 10, height: 10, length: 10, 
+    price: 1500, cost: 500,
+    width: 10, height: 10, length: 10,
     weight: 0.5
-  });
-
-  const [extraPacking, setExtraPacking] = useState({
-    enabled: false, value: 0, type: 'unit' // 'unit' or 'total'
   });
 
   const [manualLiterage, setManualLiterage] = useState(null);
   const [manualUnitsPerBox, setManualUnitsPerBox] = useState(null);
 
   // --- IRP HELPERS ---
-  const getKrpPercent = (locIdx) => {
-    // Mapping locIndex (multiplier 0.5-2.0) to KRP % (from news file)
-    // 1.0 multiplier is 60% localization -> KRP 0
-    if (locIdx <= 1.0) return 0;
-    
-    // Roughly map multipliers to KRP percentages:
-    // 2.0 (0-5% IL) -> 2.5%
-    // 1.5 (25-30% IL) -> 2.2%
-    // 1.1 (50-55% IL) -> 2.05%
-    if (locIdx >= 1.95) return 0.025;
-    if (locIdx >= 1.5) return 0.022;
-    if (locIdx >= 1.1) return 0.0205;
-    return 0.02; // Default for 55-60%
+  const getKrpPercent = (localizationPercent) => {
+    // Mapping localization % to KRP % from ИРП.md
+    if (localizationPercent >= 60) return 0; // 60%+ -> no KRP penalty
+
+    if (localizationPercent < 5) return 0.025; // 0-5% -> 2.5%
+    if (localizationPercent < 10) return 0.0245; // 5-10% -> 2.45%
+    if (localizationPercent < 15) return 0.0235; // 10-15% -> 2.35%
+    if (localizationPercent < 20) return 0.023; // 15-20% -> 2.30%
+    if (localizationPercent < 25) return 0.0225; // 20-25% -> 2.25%
+    if (localizationPercent < 30) return 0.022; // 25-30% -> 2.20%
+    if (localizationPercent < 35) return 0.0215; // 30-35% -> 2.15%
+    if (localizationPercent < 45) return 0.021; // 35-45% -> 2.10%
+    if (localizationPercent < 50) return 0.0205; // 45-50% -> 2.05%
+    if (localizationPercent < 55) return 0.0205; // 50-55% -> 2.05%
+    return 0.02; // 55-60% -> 2.00%
   };
 
   const calculateReturnLogistics = (liters) => {
@@ -138,7 +154,7 @@ const FboCalculator = () => {
 
   // --- 3. НАСТРОЙКИ КЛИЕНТА ---
   const [clientSettings, setClientSettings] = useState({
-    locIndex: 1.45, selectedWhIds: [1], isLocIndexManual: false
+    locIndex: 1.45, localizationPercent: 27, selectedWhIds: [1], isLocIndexManual: false
   });
   
   const [anchorMode, setAnchorMode] = useState('items');
@@ -210,53 +226,18 @@ const FboCalculator = () => {
   const baseWbLogistics = 50 + Math.max(0, currentLiterage - 5) * 5;
   const totalItems = displayTotalItems;
 
-  // --- SMART IL LOGIC ---
-  const calculateSmartIL = (selectedIds) => {
-      if (selectedIds.length === 0) return 1.60; 
-      if (selectedIds.length === 1) {
-          const wh = warehouses.find(w => w.id === selectedIds[0]);
-          if (!wh) return 1.60;
-          return wh.region === 'ЦФО' ? 1.45 : 1.60;
-      }
-      let il = 1.60;
-      const selectedWhs = warehouses.filter(w => selectedIds.includes(w.id));
-      const regions = new Set(selectedWhs.map(w => w.region));
-      const hasCFO = regions.has('ЦФО');
-      if (hasCFO) {
-          il = 1.45; 
-          const cfoCount = selectedWhs.filter(w => w.region === 'ЦФО').length;
-          if (cfoCount > 1) il -= (cfoCount - 1) * 0.03;
-          if (il < 1.15 && regions.size === 1) il = 1.15; 
-      }
-      const extraRegionsCount = hasCFO ? regions.size - 1 : regions.size;
-      if (extraRegionsCount > 0) il -= extraRegionsCount * 0.15;
-      regions.forEach(reg => {
-          const whsInReg = selectedWhs.filter(w => w.region === reg);
-          const hasHub = whsInReg.some(w => w.isHub);
-          if (!hasHub) il += 0.10; 
-      });
-      return Math.min(2.0, Math.max(0.70, Math.round(il * 100) / 100));
-  };
-
   const toggleClientWarehouse = (id) => {
     setClientSettings(prev => {
         const exists = prev.selectedWhIds.includes(id);
-        let newIds = exists 
-            ? prev.selectedWhIds.filter(wid => wid !== id) 
+        const newIds = exists
+            ? prev.selectedWhIds.filter(wid => wid !== id)
             : [...prev.selectedWhIds, id];
-        let newIL = 1.60;
-        if (newIds.length > 0 && !prev.isLocIndexManual) {
-            newIL = calculateSmartIL(newIds);
-        } else if (prev.isLocIndexManual) {
-            newIL = prev.locIndex;
-        } else if (newIds.length === 0) {
-            newIL = 1.60;
-        }
-        return { ...prev, selectedWhIds: newIds, locIndex: newIL };
+        return { ...prev, selectedWhIds: newIds };
     });
   };
 
   const handleManualILChange = (val) => setClientSettings(prev => ({ ...prev, locIndex: Number(val), isLocIndexManual: true }));
+  const handleLocalizationPercentChange = (val) => setClientSettings(prev => ({ ...prev, localizationPercent: Math.max(0, Math.min(100, Number(val))) }));
   const handleBoxChange = (id, count) => {
     const val = count === '' ? 0 : Math.max(0, parseInt(count) || 0);
     setWarehouses(warehouses.map(w => w.id === id ? { ...w, boxCount: val } : w));
@@ -379,7 +360,7 @@ const FboCalculator = () => {
       const neededBoxes = Math.ceil(1000 / unitsPerBox);
       setManualTotalBoxes(neededBoxes);
       setWarehouses(initialWarehouses.map(w => w.id === 1 ? { ...w, boxCount: neededBoxes } : { ...w, boxCount: 0 }));
-      setClientSettings({ locIndex: 1.45, selectedWhIds: [1], isLocIndexManual: false });
+      setClientSettings({ locIndex: 1.45, localizationPercent: 27, selectedWhIds: [1], isLocIndexManual: false });
   };
 
   const filteredClientWarehouses = useMemo(() => {
@@ -396,9 +377,10 @@ const FboCalculator = () => {
     return lightMap[region] || 'bg-slate-100 text-slate-600 border-slate-200';
   };
 
-  const calculateFFCost = (items, boxes) => {
-      const itemsCost = items * (ffRates.processing + ffRates.specification);
-      const boxesCost = boxes * (ffRates.boxAssembly + ffRates.boxMaterial);
+  const calculateFFCost = (items, boxes, customRates = null) => {
+      const rates = customRates || ffRates;
+      const itemsCost = items * (rates.processing + rates.specification);
+      const boxesCost = boxes * (rates.boxAssembly + rates.boxMaterial);
       let extraCost = 0;
       if (extraPacking.enabled) {
           extraCost = extraPacking.type === 'unit' ? extraPacking.value * items : extraPacking.value;
@@ -414,29 +396,53 @@ const FboCalculator = () => {
     let weightedCoeff = 0, weightedLogisticCost = 0;
     if (totalSelDemand > 0) {
         selectedWhs.forEach(w => { const share = w.regionDemand / totalSelDemand; weightedCoeff += Number(w.wbCoeff) * share; weightedLogisticCost += w.logisticCostBox * share; });
-    } else { weightedCoeff = selectedWhs.reduce((s,w)=>s+Number(w.wbCoeff),0)/selectedWhs.length; weightedLogisticCost = selectedWhs.reduce((s,w)=>s+w.logisticCostBox,0)/selectedWhs.length; }
+    } else {
+      weightedCoeff = selectedWhs.reduce((s,w)=>s+Number(w.wbCoeff),0)/selectedWhs.length;
+      weightedLogisticCost = selectedWhs.reduce((s,w)=>s+w.logisticCostBox,0)/selectedWhs.length;
+    }
 
-    const locIndex = clientSettings.locIndex;
-    const krp = getKrpPercent(locIndex);
+    // Расчет ИЛ (для логистики) и КРП (для ИРП)
+    const il = clientSettings.locIndex; // Индекс локализации из настроек
+    const localizationPercent = clientSettings.localizationPercent; // Доля локальных заказов из статистики WB
+    const krp = getKrpPercent(localizationPercent); // КРП для ИРП
     const irpUnit = product.price * krp;
 
-    const wbCostUnit = (baseWbLogistics * weightedCoeff * locIndex) + irpUnit;
+    // DEBUG: ИРП расчет
+    console.log('🔍 WB Formula DEBUG:', {
+      productName: 'Товар',
+      productPrice: product.price,
+      totalItems,
+      currentTableBoxes,
+      unitsPerBox,
+      locIndex: il,
+      localizationPercent,
+      krp,
+      krpPercent: krp * 100,
+      baseWbLogistics,
+      weightedCoeff,
+      wbLogistics: baseWbLogistics * weightedCoeff * il,
+      irpUnit,
+      wbCostUnit: (baseWbLogistics * weightedCoeff * il) + irpUnit,
+      irpSurcharge: irpUnit * totalItems
+    });
+
+    const wbCostUnit = (baseWbLogistics * weightedCoeff * il) + irpUnit;
     const deliveryToWhTotal = currentTableBoxes * weightedLogisticCost;
-    const ffTotal = calculateFFCost(totalItems, currentTableBoxes) + deliveryToWhTotal;
+    const ffTotal = calculateFFCost(totalItems, currentTableBoxes, useCustomFfRates ? clientFfRates : null) + deliveryToWhTotal;
     const whNames = selectedWhs.length > 3 ? `${selectedWhs.length} складов` : selectedWhs.map(w => w.name).join(', ');
-    
+
     const taxUnit = product.price * 0.07; // Assuming 7% tax
     const netProfitUnit = product.price - product.cost - taxUnit - wbCostUnit - (ffTotal / totalItems);
-    
-    return { wbLogisticsUnit: wbCostUnit, ffUnit: ffTotal / totalItems, totalCost: (wbCostUnit * totalItems) + ffTotal, locIndex: locIndex, deliveryToWhCost: deliveryToWhTotal, whNames: whNames, irpSurcharge: irpUnit * totalItems, netProfitUnit };
+
+    return { wbLogisticsUnit: wbCostUnit, ffUnit: ffTotal / totalItems, totalCost: (wbCostUnit * totalItems) + ffTotal, locIndex: il, deliveryToWhCost: deliveryToWhTotal, whNames: whNames, irpSurcharge: irpUnit * totalItems, netProfitUnit, localizationPercent };
   })();
 
   const distributedScenario = (() => {
     if (totalItems === 0) return { wbLogisticsUnit: 0, ffUnit: 0, totalCost: 0, locIndex: 0, deliveryToWhCost: 0, irpSurcharge: 0 };
     let weightedWbLogisticsSum = 0, totalDeliveryToWh = 0;
-    const locIndex = 0.8;
-    const irpUnit = 0; // Target is always >60% localization
-    
+    const locIndex = 0.7; // Целевой ИЛ при распределении по всей России
+    const irpUnit = 0; // Target is always >60% localization -> no KRP penalty
+
     warehouses.forEach(w => {
        if (w.boxCount > 0) {
            const itemsInWh = w.boxCount * unitsPerBox;
@@ -446,7 +452,7 @@ const FboCalculator = () => {
     });
     const ffServicesAndMaterial = calculateFFCost(totalItems, currentTableBoxes);
     const totalFf = ffServicesAndMaterial + totalDeliveryToWh;
-    
+
     const taxUnit = product.price * 0.07;
     const netProfitUnit = product.price - product.cost - taxUnit - ((weightedWbLogisticsSum / totalItems) + irpUnit) - (totalFf / totalItems);
 
@@ -503,11 +509,23 @@ const FboCalculator = () => {
                   </div>
                   <div className={`pt-2 border-t ${t.cardBorder}`}>
                       <div className="flex justify-between mb-1">
-                          <label className={`text-[10px] uppercase font-bold ${t.subtitleText}`}>Индекс Локализации (КРП)</label>
-                          <span className={`text-xs font-bold px-2 rounded ${isDark ? 'text-orange-400 bg-orange-900/30' : 'text-orange-600 bg-orange-50'}`}>{clientSettings.locIndex}</span>
+                          <label className={`text-[10px] uppercase font-bold ${t.subtitleText}`}>Индекс Локализации</label>
+                          <span className={`text-xs font-bold px-2 rounded ${isDark ? 'text-blue-400 bg-blue-900/30' : 'text-blue-600 bg-blue-50'}`}>{clientSettings.locIndex}</span>
                       </div>
-                      <input type="range" min="0.5" max="2.0" step="0.05" value={clientSettings.locIndex} onChange={(e) => handleManualILChange(e.target.value)} className={`w-full accent-orange-500 h-2 rounded-lg appearance-none cursor-pointer ${isDark ? 'bg-gray-700' : 'bg-slate-200'}`} />
-                      <div className={`flex justify-between text-[9px] mt-1 ${t.subtitleText}`}><span>0.5 (Идеал)</span><span>1.0 (60%+)</span><span>2.0 (0%)</span></div>
+                      <input type="range" min="0.5" max="2.0" step="0.05" value={clientSettings.locIndex} onChange={(e) => handleManualILChange(e.target.value)} className={`w-full accent-blue-500 h-2 rounded-lg appearance-none cursor-pointer ${isDark ? 'bg-gray-700' : 'bg-slate-200'}`} />
+                      <div className={`flex justify-between text-[9px] mt-1 ${t.subtitleText}`}><span>0.5 (идеал)</span><span>1.0 (норма)</span><span>2.0 (плохо)</span></div>
+                      <div className={`text-[9px] mt-1 ${t.subtitleText}`}>Влияет на тариф логистики WB</div>
+                  </div>
+
+                  <div className={`pt-2 border-t ${t.cardBorder}`}>
+                      <div className="flex justify-between mb-1">
+                          <label className={`text-[10px] uppercase font-bold ${t.subtitleText}`}>Доля локальных заказов</label>
+                          <span className={`text-xs font-bold px-2 rounded ${clientSettings.localizationPercent >= 60 ? (isDark ? 'text-green-400 bg-green-900/30' : 'text-green-600 bg-green-50') : (isDark ? 'text-orange-400 bg-orange-900/30' : 'text-orange-600 bg-orange-50')}`}>{clientSettings.localizationPercent}%</span>
+                      </div>
+                      <input type="range" min="0" max="100" step="1" value={clientSettings.localizationPercent} onChange={(e) => handleLocalizationPercentChange(e.target.value)} className={`w-full accent-orange-500 h-2 rounded-lg appearance-none cursor-pointer ${isDark ? 'bg-gray-700' : 'bg-slate-200'}`} />
+                      <div className={`flex justify-between text-[9px] mt-1 ${t.subtitleText}`}><span>0% (вся Россия)</span><span>60%+ (цель)</span><span>100% (регион)</span></div>
+                      <div className={`text-[9px] mt-1 ${t.subtitleText}`}>КРП: {getKrpPercent(clientSettings.localizationPercent) === 0 ? '✅ 0% (нет штрафа)' : `⚠️ ${(getKrpPercent(clientSettings.localizationPercent) * 100).toFixed(2)}% от цены`}</div>
+                      <div className={`text-[9px] mt-1 ${t.subtitleText}`}>Посмотрите в статистике WB: \"Локальные заказы\"</div>
                   </div>
               </div>
           </div>
@@ -561,27 +579,6 @@ const FboCalculator = () => {
                         {manualLiterage !== null && <button onClick={() => setManualLiterage(null)} className="text-indigo-400 hover:text-red-500"><X size={14}/></button>}
                     </div>
                 </div>
-             </div>
-
-             {/* EXTRA PACKAGING */}
-             <div className="mt-4 pt-3 border-t border-dashed border-slate-200 dark:border-gray-700">
-                <label className="flex items-center gap-2 cursor-pointer mb-2">
-                    <input type="checkbox" checked={extraPacking.enabled} onChange={e => setExtraPacking({...extraPacking, enabled: e.target.checked})} className="rounded text-indigo-600 focus:ring-indigo-500 h-3 w-3" />
-                    <span className={`text-[11px] font-semibold uppercase ${t.subtitleText}`}>Дополнительная упаковка</span>
-                </label>
-                
-                {extraPacking.enabled && (
-                    <div className={`flex items-center gap-2 p-2 rounded-lg ${isDark ? 'bg-indigo-900/10' : 'bg-indigo-50/50'}`}>
-                        <div className="relative flex-1">
-                            <span className={`absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold ${t.iconPrimary}`}>₽</span>
-                            <input type="number" value={extraPacking.value || ''} onChange={e => setExtraPacking({...extraPacking, value: Number(e.target.value)})} className={`w-full pl-6 p-1 text-sm border rounded outline-none ${t.inputBg} ${t.inputBorder} ${t.inputText}`} placeholder="0" />
-                        </div>
-                        <div className="flex bg-white dark:bg-gray-800 rounded-md p-0.5 border dark:border-gray-700 shadow-sm">
-                            <button onClick={() => setExtraPacking({...extraPacking, type: 'unit'})} className={`px-2 py-1 text-[10px] rounded transition-all ${extraPacking.type === 'unit' ? 'bg-indigo-600 text-white shadow-sm' : `${t.subtitleText} hover:bg-slate-50 dark:hover:bg-gray-700`}`}>за шт.</button>
-                            <button onClick={() => setExtraPacking({...extraPacking, type: 'total'})} className={`px-2 py-1 text-[10px] rounded transition-all ${extraPacking.type === 'total' ? 'bg-indigo-600 text-white shadow-sm' : `${t.subtitleText} hover:bg-slate-50 dark:hover:bg-gray-700`}`}>партия</button>
-                        </div>
-                    </div>
-                )}
              </div>
           </div>
 
@@ -678,30 +675,138 @@ const FboCalculator = () => {
              </div>
           </div>
           
-          {/* 4. Rates */}
-          {canManageSettings && (
-            <div className={`${t.cardBg} p-3 rounded-xl shadow-sm border ${t.cardBorder}`}>
-                <details className="text-sm">
-                    <summary className={`font-semibold cursor-pointer flex items-center gap-2 ${t.inputText}`}><DollarSign size={14} className="text-green-500" /> Настройки тарифов фулфилмента</summary>
-                    <div className={`mt-3 space-y-4 pl-2 border-l-2 ${isDark ? 'border-gray-800' : 'border-slate-100'}`}>
-                        <div>
-                            <div className="text-[10px] font-bold text-indigo-400 uppercase mb-1">За единицу товара (₽/шт)</div>
-                            <div className="space-y-1">
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Обработка</span> <input type="number" className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.processing || ''} onChange={e => setFfRates({...ffRates, processing: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" /></div>
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Спецификация</span> <input type="number" className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.specification || ''} onChange={e => setFfRates({...ffRates, specification: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" /></div>
+          {/* 4. Pro Mode */}
+          <div className={`${t.cardBg} p-3 rounded-xl shadow-sm border ${t.cardBorder}`}>
+             <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                   <Zap size={14} className="text-amber-500"/>
+                   <span className={`font-semibold text-sm ${t.inputText}`}>Про-режим</span>
+                </div>
+                <button
+                   onClick={() => setProMode(!proMode)}
+                   className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${proMode ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                >
+                   <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${proMode ? 'translate-x-5' : 'translate-x-1'}`} />
+                </button>
+             </div>
+
+             {proMode && (
+                <div className="space-y-4">
+                   {/* Extra Packaging - Always visible in Pro Mode */}
+                   <div className={`p-3 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
+                      <div className={`text-[10px] font-bold text-amber-500 uppercase mb-2 flex items-center gap-1`}>
+                         <Package size={10} />
+                         Дополнительная упаковка
+                      </div>
+                      <div className="flex items-center gap-2">
+                         <div className="relative flex-1">
+                            <span className={`absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-500`}>₽</span>
+                            <input
+                               type="number"
+                               value={extraPacking.value || ''}
+                               onChange={e => setExtraPacking({...extraPacking, value: Number(e.target.value)})}
+                               className={`w-full pl-6 p-1 text-sm border rounded outline-none ${t.inputBg} ${t.inputBorder} ${t.inputText}`}
+                               placeholder="0"
+                            />
+                         </div>
+                         <div className={`flex bg-white dark:bg-gray-800 rounded-md p-0.5 border dark:border-gray-700 shadow-sm ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                            <button
+                               onClick={() => setExtraPacking({...extraPacking, type: 'unit'})}
+                               className={`px-2 py-1 text-[10px] rounded transition-all ${extraPacking.type === 'unit' ? 'bg-amber-500 text-white shadow-sm' : `${t.subtitleText} hover:bg-gray-100 dark:hover:bg-gray-700`}`}
+                            >
+                               за шт.
+                            </button>
+                            <button
+                               onClick={() => setExtraPacking({...extraPacking, type: 'total'})}
+                               className={`px-2 py-1 text-[10px] rounded transition-all ${extraPacking.type === 'total' ? 'bg-amber-500 text-white shadow-sm' : `${t.subtitleText} hover:bg-gray-100 dark:hover:bg-gray-700`}`}
+                            >
+                               партия
+                            </button>
+                         </div>
+                      </div>
+                   </div>
+
+                   {/* FF Rates */}
+                   <div className={`p-3 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                         <div className={`text-[10px] font-bold text-amber-500 uppercase flex items-center gap-1`}>
+                            <DollarSign size={10} />
+                            Тарифы фулфилмента
+                         </div>
+                         <label className="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" checked={useCustomFfRates} onChange={e => setUseCustomFfRates(e.target.checked)} className="rounded text-amber-500 focus:ring-amber-500 h-3 w-3" />
+                            <span className={`text-[9px] ${t.subtitleText}`}>Якорь</span>
+                         </label>
+                      </div>
+
+                      {useCustomFfRates ? (
+                         <div className="space-y-2">
+                            <div className={`p-2 rounded border ${isDark ? 'bg-amber-900/10 border-amber-700' : 'bg-amber-50 border-amber-200'}`}>
+                               <div className="text-[9px] text-amber-600 mb-2 font-semibold">Тариф клиента (сейчас)</div>
+                               <div className="space-y-2">
+                                  <div>
+                                     <div className="text-[9px] text-gray-400 mb-1">За единицу (₽/шт)</div>
+                                     <div className="grid grid-cols-2 gap-2">
+                                        <div className="flex items-center justify-between">
+                                           <span className={`text-[10px] ${t.inputText}`}>Обработка</span>
+                                           <input type="number" className={`w-14 border rounded text-right text-[10px] p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={clientFfRates.processing || ''} onChange={e => setClientFfRates({...clientFfRates, processing: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                           <span className={`text-[10px] ${t.inputText}`}>Спецификация</span>
+                                           <input type="number" className={`w-14 border rounded text-right text-[10px] p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={clientFfRates.specification || ''} onChange={e => setClientFfRates({...clientFfRates, specification: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" />
+                                        </div>
+                                     </div>
+                                  </div>
+                                  <div>
+                                     <div className="text-[9px] text-gray-400 mb-1">За короб (₽/кор)</div>
+                                     <div className="grid grid-cols-2 gap-2">
+                                        <div className="flex items-center justify-between">
+                                           <span className={`text-[10px] ${t.inputText}`}>Сборка</span>
+                                           <input type="number" className={`w-14 border rounded text-right text-[10px] p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={clientFfRates.boxAssembly || ''} onChange={e => setClientFfRates({...clientFfRates, boxAssembly: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                           <span className={`text-[10px] ${t.inputText}`}>Короб</span>
+                                           <input type="number" className={`w-14 border rounded text-right text-[10px] p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={clientFfRates.boxMaterial || ''} onChange={e => setClientFfRates({...clientFfRates, boxMaterial: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" />
+                                        </div>
+                                     </div>
+                                  </div>
+                               </div>
                             </div>
-                        </div>
-                        <div>
-                             <div className="text-[10px] font-bold text-indigo-400 uppercase mb-1">За короб (₽/кор)</div>
-                             <div className="space-y-1">
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Сборка и марк.</span> <input type="number" className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxAssembly || ''} onChange={e => setFfRates({...ffRates, boxAssembly: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" /></div>
-                                <div className="flex justify-between items-center"><span className={`text-xs ${t.inputText}`}>Цена короба</span> <input type="number" className={`w-14 border rounded text-right text-xs p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxMaterial || ''} onChange={e => setFfRates({...ffRates, boxMaterial: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" /></div>
-                             </div>
-                        </div>
-                    </div>
-                </details>
-            </div>
-          )}
+                         </div>
+                      ) : (
+                         <div className="space-y-2">
+                            <div>
+                               <div className="text-[9px] text-gray-400 mb-1">За единицу (₽/шт)</div>
+                               <div className="grid grid-cols-2 gap-2">
+                                  <div className="flex items-center justify-between">
+                                     <span className={`text-[10px] ${t.inputText}`}>Обработка</span>
+                                     <input type="number" className={`w-14 border rounded text-right text-[10px] p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.processing || ''} onChange={e => setFfRates({...ffRates, processing: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" />
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                     <span className={`text-[10px] ${t.inputText}`}>Спецификация</span>
+                                     <input type="number" className={`w-14 border rounded text-right text-[10px] p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.specification || ''} onChange={e => setFfRates({...ffRates, specification: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" />
+                                  </div>
+                               </div>
+                            </div>
+                            <div>
+                               <div className="text-[9px] text-gray-400 mb-1">За короб (₽/кор)</div>
+                               <div className="grid grid-cols-2 gap-2">
+                                  <div className="flex items-center justify-between">
+                                     <span className={`text-[10px] ${t.inputText}`}>Сборка</span>
+                                     <input type="number" className={`w-14 border rounded text-right text-[10px] p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxAssembly || ''} onChange={e => setFfRates({...ffRates, boxAssembly: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" />
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                     <span className={`text-[10px] ${t.inputText}`}>Короб</span>
+                                     <input type="number" className={`w-14 border rounded text-right text-[10px] p-1 ${t.inputBg} ${t.inputBorder} ${t.inputText}`} value={ffRates.boxMaterial || ''} onChange={e => setFfRates({...ffRates, boxMaterial: e.target.value === '' ? 0 : +e.target.value})} placeholder="0" />
+                                  </div>
+                               </div>
+                            </div>
+                         </div>
+                      )}
+                   </div>
+                </div>
+             )}
+          </div>
         </div>
 
         {/* RIGHT: Results */}
@@ -742,8 +847,8 @@ const FboCalculator = () => {
                           <YAxis type="category" dataKey="name" width={140} tick={{fontSize: 11, fontWeight: 600, fill: t.isDark ? '#9ca3af' : '#334155'}} />
                           <Tooltip contentStyle={{ backgroundColor: t.chartTooltipBg, border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`, borderRadius: '0.5rem', color: t.chartTooltipText }} />
                           <Legend wrapperStyle={{fontSize: '12px', color: t.isDark ? '#9ca3af' : '#1f2937'}}/>
-                          <Bar name="Фулфилмент" dataKey="Фулфилмент" stackId="a" fill={t.ffBarColor} radius={[0, 0, 0, 0]} />
-                          <Bar name="Тариф Wildberries" dataKey="Логистика ВБ" stackId="a" fill={t.wbBarColor} radius={[0, 4, 4, 0]} />
+                          <Bar name="Фулфилмент" dataKey="Фулфилмент" stackId="a" fill={t.ffBarColor} stroke={t.ffBarColor} strokeWidth={1} radius={[0, 0, 0, 0]} />
+                          <Bar name="Тариф Wildberries" dataKey="Логистика ВБ" stackId="a" fill={t.wbBarColor} stroke={t.ffBarColor} strokeWidth={1} radius={[0, 0, 0, 0]} />
                       </BarChart>
                   </ResponsiveContainer>
               </div>
@@ -756,7 +861,7 @@ const FboCalculator = () => {
                           <th className="px-5 py-3">Статья расходов (вся партия)</th>
                           <th className="px-5 py-3 text-right">
                               <div>Как сейчас</div>
-                              <div className={`text-[9px] font-normal ${t.subtitleText}`}>Индекс {clientSettings.locIndex}, склад(ы):</div>
+                              <div className={`text-[9px] font-normal ${t.subtitleText}`}>ИЛ {clientSettings.locIndex}, локальность {clientSettings.localizationPercent}%</div>
                               <div className={`text-[9px] font-medium truncate max-w-[150px] ml-auto ${t.subtitleText}`}>{clientScenario.whNames}</div>
                           </th>
                           <th className={`px-5 py-3 text-right ${t.ffHighlightText} ${isDark ? 'bg-indigo-900/10' : 'bg-indigo-50/50'}`}>
@@ -777,11 +882,14 @@ const FboCalculator = () => {
                       <tr>
                           <td className="px-5 py-3">
                               <div className="flex items-center gap-1">
-                                  Доплата ИРП (от цены товара)
+                                  КРП (штраф за локализацию)
                                   <div className="group relative">
                                       <div className={`text-[9px] cursor-help border rounded-full w-3 h-3 flex items-center justify-center ${t.subtitleText}`}>?</div>
-                                      <div className={`absolute bottom-full left-0 mb-2 w-48 p-2 rounded shadow-lg text-[10px] leading-tight hidden group-hover:block z-50 ${isDark ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} border ${t.cardBorder}`}>
-                                          Новый штраф WB с 23 марта. Берется % от цены товара, если локализация менее 60%.
+                                      <div className={`absolute bottom-full left-0 mb-2 w-56 p-2 rounded shadow-lg text-[10px] leading-tight hidden group-hover:block z-50 ${isDark ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} border ${t.cardBorder}`}>
+                                          <div className="font-bold mb-1">Коэффициент Распределения Продаж</div>
+                                          Берётся % от цены товара если доля локализации {"<"} 60%.<br/>
+                                          При 60%+ локализации КРП = 0% (нет штрафа).<br/>
+                                          При 0% локализации КРП = 2.5% от цены.
                                       </div>
                                   </div>
                               </div>
@@ -811,7 +919,7 @@ const FboCalculator = () => {
                               <div>Услуги фулфилмента</div>
                               <div className={`text-xs ${t.subtitleText}`}>Складская обработка, спецификация, подготовка</div>
                           </td>
-                          <td className="px-5 py-3 text-right">{Math.round(calculateFFCost(totalItems, currentTableBoxes)).toLocaleString()} ₽</td>
+                          <td className="px-5 py-3 text-right">{Math.round(calculateFFCost(totalItems, currentTableBoxes, useCustomFfRates ? clientFfRates : null)).toLocaleString()} ₽</td>
                           <td className={`px-5 py-3 text-right ${t.ffHighlightBg}`}>{Math.round(calculateFFCost(totalItems, currentTableBoxes)).toLocaleString()} ₽</td>
                       </tr>
                       <tr className={`font-bold ${t.tableHeaderBg}`}>
