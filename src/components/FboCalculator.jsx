@@ -440,7 +440,7 @@ const FboCalculator = () => {
   const distributedScenario = (() => {
     if (totalItems === 0) return { wbLogisticsUnit: 0, ffUnit: 0, totalCost: 0, locIndex: 0, deliveryToWhCost: 0, irpSurcharge: 0 };
     let weightedWbLogisticsSum = 0, totalDeliveryToWh = 0;
-    const locIndex = 0.7; // Целевой ИЛ при распределении по всей России
+    const locIndex = 0.8; // Целевой ИЛ при распределении по всей России
     const irpUnit = 0; // Target is always >60% localization -> no KRP penalty
 
     warehouses.forEach(w => {
